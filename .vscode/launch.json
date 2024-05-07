@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:rssbar}",
+      "name": "Debug RSSBar",
+      "program": "${workspaceFolder:rssbar}/.build/debug/RSSBar",
+      "preLaunchTask": "swift: Build Debug RSSBar"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:rssbar}",
+      "name": "Release RSSBar",
+      "program": "${workspaceFolder:rssbar}/.build/release/RSSBar",
+      "preLaunchTask": "swift: Build Release RSSBar"
+    }
+  ]
+}
