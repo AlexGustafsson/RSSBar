@@ -30,7 +30,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       viewController.show()
     }
     menu.onAddFeed = {
-      // TODO
+      let viewController = AddFeedViewController()
+      viewController.show()
+
     }
     menu.onMarkAllAsRead = {
       // TODO
