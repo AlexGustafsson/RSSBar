@@ -22,6 +22,7 @@ class AboutViewController {
   }
 
   public func show() {
+    NSApp.activate(ignoringOtherApps: true)
     self.window.makeKeyAndOrderFront(nil)
   }
 
