@@ -15,14 +15,27 @@ let package = Package(
       name: "RSSKit",
       targets: ["RSSKit"]),
   ],
+  dependencies: [
+    .package(
+      url: "https://github.com/apple/swift-http-types.git", from: "1.1.0")
+  ],
   targets: [
     // Targets are the basic building blocks of a package, defining a module or a test suite.
     // Targets can depend on other targets in this package and products from dependencies.
     .executableTarget(
-      name: "RSSBar"),
+      name: "RSSBar"
+    ),
+    .target(
+      name: "RSSKit",
+      dependencies: [
+        .product(name: "HTTPTypes", package: "swift-http-types"),
+        .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
+      ]
+    ),
     .testTarget(
       name: "RSSKitTests",
-      dependencies: ["RSSBar"]),
-    .target(name: "RSSKit"),
+      dependencies: [
+        "RSSKit"
+      ]),
   ]
 )
