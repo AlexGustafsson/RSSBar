@@ -18,12 +18,9 @@ public struct RSSFeed {
     let (responseBody, _) = try await URLSession.shared.download(
       for: request)
 
-    let parser = XMLParser(contentsOf: responseBody)!
-    let feedDelegate = FeedDelegate()
-    parser.delegate = feedDelegate
-    parser.parse()
+    let x = parseRSS(contentsOf: responseBody)
 
-    print("Foo: \(feedDelegate.feed)")
+    print("Foo: \(x!)")
   }
 
 }
@@ -87,27 +84,60 @@ struct FeedEntry {
 //   </entry>
 //  </feed>
 
-enum FeedParserState {
-  case root
-  case feed
-  case author
-  case entry
+public func parseRSS(contentsOf: URL) -> XMLNode? {
+  let parser = XMLParser(contentsOf: contentsOf)!
+  let parserDelegate = XMLParserDelegateX()
+  parser.delegate = parserDelegate
+
+  parser.parse()
+
+  return parserDelegate.root
 }
 
-class FeedDelegate: NSObject, XMLParserDelegate {
-  var feed: Feed = Feed()
-  var entry: FeedEntry?
-  var state: FeedParserState = .root
+public func parseRSS(data: Data) -> XMLNode? {
+  let parser = XMLParser(data: data)
+  let parserDelegate = XMLParserDelegateX()
+  parser.delegate = parserDelegate
 
-  func parserDidStartDocument(_ parser: XMLParser) {
-    print("Start of the document")
-    print("Line number: \(parser.lineNumber)")
+  parser.parse()
+
+  return parserDelegate.root
+}
+
+public class XMLNode {
+  var tag: String
+  var attributes: [String: String]
+  var text: String?
+  var children: [XMLNode]
+  var parent: XMLNode?
+
+  init(tag: String, attributes: [String: String]) {
+    self.tag = tag
+    self.attributes = attributes
+    self.children = []
   }
 
-  func parserDidEndDocument(_ parser: XMLParser) {
-    print("End of the document")
-    print("Line number: \(parser.lineNumber)")
+}
+
+// TODO: Copy the struct print format
+extension XMLNode: CustomStringConvertible {
+  public var description: String {
+    return "<\(self.tag) [\(self.attributes)]>\(self.children)</\(self.tag)>"
   }
+}
+
+// TODO: Copy the struct print format
+extension XMLNode: CustomDebugStringConvertible {
+  public var debugDescription: String {
+    return "<\(self.tag) [\(self.attributes)]>\(self.children)</\(self.tag)>"
+  }
+}
+
+// TODO: Yield for each entry to save memory? Now the entire tree is built and
+// returned, which is unnecessary.
+class XMLParserDelegateX: NSObject, XMLParserDelegate {
+  var root: XMLNode?
+  var current: XMLNode?
 
   func parser(
     _ parser: XMLParser,
@@ -116,82 +146,28 @@ class FeedDelegate: NSObject, XMLParserDelegate {
     qualifiedName: String?,
     attributes: [String: String] = [:]
   ) {
-    let text = ""
-    print("Got element \(elementName)")
-    switch self.state {
-    case .root:
-      switch elementName {
-      case "feed":
-        self.state = .feed
-      default:
-        return
-      }
-    case .feed:
-      switch elementName {
-      case "title":
-        self.feed.title = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      case "subtitle":
-        self.feed.subtitle = text.trimmingCharacters(
-          in: .whitespacesAndNewlines)
-      case "link":
-        let url = URL(string: attributes["href"]!)!
-        let rel = attributes["rel"]
-        self.feed.links.append(FeedLink(url: url, rel: rel))
-      case "author":
-        self.feed.author = FeedAuthor()
-        self.state = .author
-      case "id":
-        self.feed.id = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      case "updated":
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-ddTHH:mm:ssZ"
-        self.feed.updated = formatter.date(
-          from: text.trimmingCharacters(in: .whitespacesAndNewlines)
-        )
-      case "entry":
-        self.entry = FeedEntry()
-        self.state = .entry
-      default:
-        return
-      }
-    case .author:
-      switch elementName {
-      case "name":
-        self.feed.author?.name = text.trimmingCharacters(
-          in: .whitespacesAndNewlines)
-      default:
-        return
-      }
-    case .entry:
-      switch elementName {
-      case "title":
-        self.entry?.title = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      case "link":
-        let url = URL(string: attributes["href"]!)!
-        let rel = attributes["rel"]
-        self.entry?.links.append(FeedLink(url: url, rel: rel))
-      case "id":
-        self.entry?.id = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      case "updated":
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-ddTHH:mm:ssZ"
-        self.entry?.updated = formatter.date(
-          from: text.trimmingCharacters(in: .whitespacesAndNewlines)
-        )
-      case "summary":
-        self.entry?.summary = text.trimmingCharacters(
-          in: .whitespacesAndNewlines)
-      default:
-        return
-      }
+    print(elementName)
+    let node = XMLNode(tag: elementName, attributes: attributes)
+    if self.current == nil {
+      print("is root")
+      self.root = node
+    } else {
+      print("has parent \(self.current!.tag)")
+      self.current!.children.append(node)
+      node.parent = self.current
     }
+    self.current = node
   }
 
   func parser(
     _ parser: XMLParser,
     foundCharacters text: String
   ) {
-    print("Got text \(text)")
+    if self.current?.text == nil {
+      self.current!.text = text
+    } else {
+      self.current!.text! += text
+    }
   }
 
   func parser(
@@ -200,15 +176,6 @@ class FeedDelegate: NSObject, XMLParserDelegate {
     namespaceURI: String?,
     qualifiedName qName: String?
   ) {
-    if self.state == .feed && elementName == "feed" {
-      self.state = .root
-    } else if self.state == .author && elementName == "author" {
-      self.state = .feed
-    } else if self.state == .entry && elementName == "entry" {
-      self.state = .feed
-      self.feed.entries.append(self.entry!)
-      self.entry = nil
-    }
+    self.current = self.current?.parent
   }
-
 }
