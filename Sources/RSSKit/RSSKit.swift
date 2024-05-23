@@ -2,6 +2,35 @@ import Foundation
 import HTTPTypes
 import HTTPTypesFoundation
 
+public class RSSDocument: XMLDocument {
+  public override func setRootElement(_ root: XMLElement) {
+    print(root)
+    super.setRootElement(root)
+  }
+}
+
+public func parseRSS(data: Data) throws {
+  let xsd = Bundle.module.url(
+    forResource: "atom", withExtension: "xsd")!
+
+  let x = try RSSDocument(
+    data: data, options: .nodeLoadExternalEntitiesNever  // TODO: Never
+  )
+
+  x.rootElement()!.addAttribute(
+    XMLNode.attribute(
+      withName: "xmlns:xsi",
+      stringValue: "http://www.w3.org/2001/XMLSchema-instance") as! XMLNode)
+
+  x.rootElement()!.addAttribute(
+    XMLNode.attribute(
+      withName: "xsi:schemaLocation",
+      stringValue: "http://www.w3.org/2005/Atom \(xsd.path())")
+      as! XMLNode)
+
+  try x.validate()
+}
+
 // SEE: https://www.rfc-editor.org/rfc/rfc5005.html
 public struct RSSFeed {
   var url: URL
@@ -18,9 +47,7 @@ public struct RSSFeed {
     let (responseBody, _) = try await URLSession.shared.download(
       for: request)
 
-    let x = parseRSS(contentsOf: responseBody)
-
-    print("Foo: \(x!)")
+    // let x = parseRSS(contentsOf: responseBody)!
   }
 
 }
@@ -83,99 +110,3 @@ struct FeedEntry {
 //     <summary>Here's looking at you, kid...</summary>
 //   </entry>
 //  </feed>
-
-public func parseRSS(contentsOf: URL) -> XMLNode? {
-  let parser = XMLParser(contentsOf: contentsOf)!
-  let parserDelegate = XMLParserDelegateX()
-  parser.delegate = parserDelegate
-
-  parser.parse()
-
-  return parserDelegate.root
-}
-
-public func parseRSS(data: Data) -> XMLNode? {
-  let parser = XMLParser(data: data)
-  let parserDelegate = XMLParserDelegateX()
-  parser.delegate = parserDelegate
-
-  parser.parse()
-
-  return parserDelegate.root
-}
-
-public class XMLNode {
-  var tag: String
-  var attributes: [String: String]
-  var text: String?
-  var children: [XMLNode]
-  var parent: XMLNode?
-
-  init(tag: String, attributes: [String: String]) {
-    self.tag = tag
-    self.attributes = attributes
-    self.children = []
-  }
-
-}
-
-// TODO: Copy the struct print format
-extension XMLNode: CustomStringConvertible {
-  public var description: String {
-    return "<\(self.tag) [\(self.attributes)]>\(self.children)</\(self.tag)>"
-  }
-}
-
-// TODO: Copy the struct print format
-extension XMLNode: CustomDebugStringConvertible {
-  public var debugDescription: String {
-    return "<\(self.tag) [\(self.attributes)]>\(self.children)</\(self.tag)>"
-  }
-}
-
-// TODO: Yield for each entry to save memory? Now the entire tree is built and
-// returned, which is unnecessary.
-class XMLParserDelegateX: NSObject, XMLParserDelegate {
-  var root: XMLNode?
-  var current: XMLNode?
-
-  func parser(
-    _ parser: XMLParser,
-    didStartElement elementName: String,
-    namespaceURI: String?,
-    qualifiedName: String?,
-    attributes: [String: String] = [:]
-  ) {
-    print(elementName)
-    let node = XMLNode(tag: elementName, attributes: attributes)
-    if self.current == nil {
-      print("is root")
-      self.root = node
-    } else {
-      print("has parent \(self.current!.tag)")
-      self.current!.children.append(node)
-      node.parent = self.current
-    }
-    self.current = node
-  }
-
-  func parser(
-    _ parser: XMLParser,
-    foundCharacters text: String
-  ) {
-    if self.current?.text == nil {
-      self.current!.text = text
-    } else {
-      self.current!.text! += text
-    }
-  }
-
-  func parser(
-    _ parser: XMLParser,
-    didEndElement elementName: String,
-    namespaceURI: String?,
-    qualifiedName qName: String?
-  ) {
-    self.current = self.current?.parent
-  }
-}

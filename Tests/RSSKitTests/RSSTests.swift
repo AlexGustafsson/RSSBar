@@ -3,14 +3,14 @@ import XCTest
 
 @testable import RSSKit
 
-final class RSSKitTests: XCTestCase {
+final class RSSTests: XCTestCase {
   // func testFetch() async throws {
   //   let x = RSSFeed(
   //     url: URL(string: "https://github.com/traefik/traefik/releases.atom")!)
   //   try await x.fetch()
   // }
 
-  func testParseRSS() {
+  func testParseRSS() throws {
     let input = """
       <?xml version="1.0" encoding="utf-8"?>
        <feed xmlns="http://www.w3.org/2005/Atom"
@@ -35,7 +35,7 @@ final class RSSKitTests: XCTestCase {
         </entry>
        </feed>
       """
-    let x = parseRSS(data: Data(input.utf8))
-    print("Res: \(x!.description)")
+
+    let x = try parseRSS(data: Data(input.utf8))
   }
 }
