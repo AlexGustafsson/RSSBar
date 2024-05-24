@@ -2,41 +2,112 @@ import Foundation
 import HTTPTypes
 import HTTPTypesFoundation
 
-public class RSSDocument: XMLDocument {
-  public override func setRootElement(_ root: XMLElement) {
-    print(root)
-    super.setRootElement(root)
-  }
+enum RSSParseError: Error {
+  case invalidRootElementType
 }
 
-public func parseRSS(data: Data) throws {
+public func parseRSS(data: Data) throws -> Feed {
   let atomXSDPath = Bundle.module.url(
     forResource: "atom", withExtension: "xsd")!
   let rss2XSDPath = Bundle.module.url(
     forResource: "rss2", withExtension: "xsd")!
 
-  let x = try RSSDocument(
-    data: data, options: .nodeLoadExternalEntitiesNever  // TODO: Never
+  let x = try XMLDocument(
+    data: data, options: .nodeLoadExternalEntitiesNever
   )
 
-  x.rootElement()!.addAttribute(
+  let rootElement = x.rootElement()!
+
+  rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xmlns:xsi",
       stringValue: "http://www.w3.org/2001/XMLSchema-instance") as! XMLNode)
 
-  x.rootElement()!.addAttribute(
+  rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xsi:schemaLocation",
       stringValue: "http://www.w3.org/2005/Atom \(atomXSDPath.path())")
       as! XMLNode)
 
-  x.rootElement()!.addAttribute(
+  rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xsi:noNamespaceSchemaLocation",
       stringValue: rss2XSDPath.path())
       as! XMLNode)
 
   try x.validate()
+
+  if rootElement.uri == "http://www.w3.org/2005/Atom"
+    && rootElement.name == "feed"
+  {
+    return try parseAtomDocument(x)
+  } else if rootElement.name == "rss"
+    && rootElement.attribute(forName: "version")?.stringValue == "2.0"
+  {
+    return try parseRSS2Document(x)
+  } else {
+    throw RSSParseError.invalidRootElementType
+  }
+}
+
+func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
+  // TODO
+  return Feed()
+}
+
+func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
+  var feed = Feed()
+
+  if let title = try document.nodes(forXPath: "/rss/channel/title").first {
+    feed.title = title.stringValue!
+  }
+
+  if let lastBuildDate = try document.nodes(
+    forXPath: "/rss/channel/lastBuildDate"
+  )
+  .first {
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US")
+    // Fri, 21 Jul 2023 09:04 EDT
+    dateFormatter.dateFormat = "E, d LLL y H:m z"
+    let date = dateFormatter.date(from: lastBuildDate.stringValue!)!
+    feed.updated = date
+  }
+
+  for item in try document.nodes(forXPath: "/rss/channel/item") {
+    var entry = FeedEntry(links: [])
+
+    if let title = try item.nodes(forXPath: "/rss/channel/item/title").first {
+      entry.title = title.stringValue!
+    }
+
+    if let link = try item.nodes(forXPath: "/rss/channel/item/link").first {
+      entry.links = [URL(string: link.stringValue!)!]
+    }
+
+    if let description = try item.nodes(
+      forXPath: "/rss/channel/item/description"
+    ).first {
+      entry.summary = description.stringValue!
+    }
+
+    if let pubDate = try item.nodes(forXPath: "/rss/channel/item/pubDate").first
+    {
+      let dateFormatter = DateFormatter()
+      dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+      dateFormatter.dateFormat = "E, d LLL y H:m z"
+      let date = dateFormatter.date(from: pubDate.stringValue!)!
+      feed.updated = date
+    }
+
+    if let guid = try item.nodes(forXPath: "/rss/channel/item/guid").first {
+      entry.id = guid.stringValue!
+    }
+
+    feed.entries.append(entry)
+  }
+
+  return feed
 }
 
 // SEE: https://www.rfc-editor.org/rfc/rfc5005.html
@@ -60,61 +131,20 @@ public struct RSSFeed {
 
 }
 
-struct Feed {
+public struct Feed {
   var title: String?
-  var subtitle: String?
-  var links: [FeedLink]
   var updated: Date?
-  var author: FeedAuthor?
-  var id: String?
   var entries: [FeedEntry]
 
   init() {
-    self.links = []
     self.entries = []
   }
 }
 
-struct FeedLink {
-  var url: URL?
-  var rel: String?
-}
-
-struct FeedAuthor {
-  var name: String?
-}
-
-struct FeedEntry {
+public struct FeedEntry {
   var title: String?
-  var links: [FeedLink]
+  var links: [URL]
+  var summary: String?
   var id: String?
   var updated: Date?
-  var summary: String?
-
-  init() {
-    self.links = []
-  }
 }
-
-// <?xml version="1.0" encoding="utf-8"?>
-//  <feed xmlns="http://www.w3.org/2005/Atom"
-//   xmlns:fh="http://purl.org/syndication/history/1.0">
-//   <title>NetMovies Queue</title>
-//   <subtitle>The DVDs you'll receive next.</subtitle>
-//   <link href="http://example.org/"/>
-//   <fh:complete/>
-//   <link rel="self"
-//    href="http://netmovies.example.org/jdoe/queue/index.atom"/>
-//   <updated>2003-12-13T18:30:02Z</updated>
-//   <author>
-//     <name>John Doe</name>
-//   </author>
-//   <id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>
-//   <entry>
-//     <title>Casablanca</title>
-//     <link href="http://netmovies.example.org/movies/Casablanca"/>
-//     <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
-//     <updated>2003-12-13T18:30:02Z</updated>
-//     <summary>Here's looking at you, kid...</summary>
-//   </entry>
-//  </feed>

@@ -61,6 +61,7 @@ final class RSSTests: XCTestCase {
       """
 
     let x = try parseRSS(data: Data(input.utf8))
+    print(x)
   }
 
   func testParseRSS() throws {
@@ -121,5 +122,6 @@ final class RSSTests: XCTestCase {
       """
 
     let x = try parseRSS(data: Data(input.utf8))
+    print(x)
   }
 }
