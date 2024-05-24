@@ -32,7 +32,8 @@ let package = Package(
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
       ],
       resources: [
-        .copy("Resources/atom.xsd")
+        .copy("Resources/atom.xsd"),
+        .copy("Resources/rss2.xsd"),
       ]
     ),
     .testTarget(

@@ -10,8 +10,10 @@ public class RSSDocument: XMLDocument {
 }
 
 public func parseRSS(data: Data) throws {
-  let xsd = Bundle.module.url(
+  let atomXSDPath = Bundle.module.url(
     forResource: "atom", withExtension: "xsd")!
+  let rss2XSDPath = Bundle.module.url(
+    forResource: "rss2", withExtension: "xsd")!
 
   let x = try RSSDocument(
     data: data, options: .nodeLoadExternalEntitiesNever  // TODO: Never
@@ -25,7 +27,13 @@ public func parseRSS(data: Data) throws {
   x.rootElement()!.addAttribute(
     XMLNode.attribute(
       withName: "xsi:schemaLocation",
-      stringValue: "http://www.w3.org/2005/Atom \(xsd.path())")
+      stringValue: "http://www.w3.org/2005/Atom \(atomXSDPath.path())")
+      as! XMLNode)
+
+  x.rootElement()!.addAttribute(
+    XMLNode.attribute(
+      withName: "xsi:noNamespaceSchemaLocation",
+      stringValue: rss2XSDPath.path())
       as! XMLNode)
 
   try x.validate()
