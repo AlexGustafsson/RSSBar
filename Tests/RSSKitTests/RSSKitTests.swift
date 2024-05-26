@@ -5,12 +5,6 @@ import XCTest
 @testable import RSSKit
 
 final class RSSTests: XCTestCase {
-  // func testFetch() async throws {
-  //   let x = RSSFeed(
-  //     url: URL(string: "https://github.com/traefik/traefik/releases.atom")!)
-  //   try await x.fetch()
-  // }
-
   func testParseAtom() throws {
     // SEE: https://datatracker.ietf.org/doc/html/rfc4287
     let input = """
@@ -61,11 +55,11 @@ final class RSSTests: XCTestCase {
       </feed>
       """
 
-    let expected = Feed(
+    let expected = RSSFeed(
       title: "dive into mark",
       updated: Date(fromRFC3339: "2005-07-31T12:29:29Z"),
       entries: [
-        FeedEntry(
+        RSSFeedEntry(
           title: "Atom draft-07 snapshot",
           links: [
             URL(string: "http://example.org/2005/04/02/atom")!,
@@ -79,7 +73,7 @@ final class RSSTests: XCTestCase {
       ]
     )
 
-    let actual = try parseRSS(data: Data(input.utf8))
+    let actual = try RSSFeed(data: Data(input.utf8))
     XCTAssertNoDifference(expected, actual)
 
   }
@@ -141,11 +135,11 @@ final class RSSTests: XCTestCase {
       </rss>
       """
 
-    let expected = Feed(
+    let expected = RSSFeed(
       title: "NASA Space Station News",
       updated: Date(fromRFC2822: "Fri, 21 Jul 2023 09:04 EDT"),
       entries: [
-        FeedEntry(
+        RSSFeedEntry(
           title:
             "Louisiana Students to Hear from NASA Astronauts Aboard Space Station",
           links: [
@@ -160,7 +154,7 @@ final class RSSTests: XCTestCase {
             "http://www.nasa.gov/press-release/louisiana-students-to-hear-from-nasa-astronauts-aboard-space-station",
           updated: Date(fromRFC2822: "Fri, 21 Jul 2023 09:04 EDT")
         ),
-        FeedEntry(
+        RSSFeedEntry(
           links: [
             URL(
               string:
@@ -173,7 +167,7 @@ final class RSSTests: XCTestCase {
             "http://www.nasa.gov/press-release/nasa-awards-integrated-mission-operations-contract-iii",
           updated: Date(fromRFC2822: "Thu, 20 Jul 2023 15:05 EDT")
         ),
-        FeedEntry(
+        RSSFeedEntry(
           title:
             "NASA Expands Options for Spacewalking, Moonwalking Suits",
           links: [
@@ -188,7 +182,7 @@ final class RSSTests: XCTestCase {
             "http://www.nasa.gov/press-release/nasa-expands-options-for-spacewalking-moonwalking-suits-services",
           updated: Date(fromRFC2822: "Mon, 10 Jul 2023 14:14 EDT")
         ),
-        FeedEntry(
+        RSSFeedEntry(
           title:
             "NASA to Provide Coverage as Dragon Departs Station",
           links: [
@@ -203,7 +197,7 @@ final class RSSTests: XCTestCase {
             "http://www.nasa.gov/press-release/nasa-to-provide-coverage-as-dragon-departs-station-with-science",
           updated: Date(fromRFC2822: "Tue, 20 May 2003 08:56:02 GMT")
         ),
-        FeedEntry(
+        RSSFeedEntry(
           title:
             "NASA Plans Coverage of Roscosmos Spacewalk Outside Space Station",
           links: [
@@ -221,7 +215,7 @@ final class RSSTests: XCTestCase {
       ]
     )
 
-    let actual = try parseRSS(data: Data(input.utf8))
+    let actual = try RSSFeed(data: Data(input.utf8))
     XCTAssertNoDifference(expected, actual)
   }
 }

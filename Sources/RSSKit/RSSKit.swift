@@ -6,7 +6,49 @@ enum RSSParseError: Error {
   case invalidRootElementType
 }
 
-public func parseRSS(data: Data) throws -> Feed {
+public struct RSSFeed: Equatable {
+  public var title: String?
+  public var updated: Date?
+  public var entries: [RSSFeedEntry]
+
+  public init(title: String?, updated: Date?, entries: [RSSFeedEntry]) {
+    self.title = title
+    self.updated = updated
+    self.entries = entries
+  }
+
+  public init(entries: [RSSFeedEntry]) {
+    self.entries = entries
+  }
+
+  public init(data: Data) throws {
+    self = try parseRSS(data)
+  }
+
+  public init(download url: URL) async throws {
+    var request = HTTPRequest(method: .get, url: url)
+    // TODO: RSS as well
+    request.headerFields[.accept] = "application/atom+xml, application/rss+xml"
+    request.headerFields[.userAgent] = "RSSBar/1.0"
+
+    let (responseBody, _) = try await URLSession.shared.download(
+      for: request)
+
+    try self.init(data: Data(contentsOf: responseBody))
+  }
+}
+
+public struct RSSFeedEntry: Equatable {
+  public var title: String?
+  public var links: [URL]
+  public var summary: String?
+  public var id: String?
+  public var updated: Date?
+  public var contentType: String?
+  public var content: String?
+}
+
+func parseRSS(_ data: Data) throws -> RSSFeed {
   let atomXSDPath = Bundle.module.url(
     forResource: "atom", withExtension: "xsd")!
   let rss2XSDPath = Bundle.module.url(
@@ -50,8 +92,8 @@ public func parseRSS(data: Data) throws -> Feed {
   }
 }
 
-func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
-  var feed = Feed(entries: [])
+func parseAtomDocument(_ document: XMLDocument) throws -> RSSFeed {
+  var feed = RSSFeed(entries: [])
 
   if let title = try document.nodes(forXPath: "/feed/title").first {
     feed.title = title.stringValue!
@@ -65,7 +107,7 @@ func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
   }
 
   for item in try document.nodes(forXPath: "/feed/entry") {
-    var entry = FeedEntry(links: [])
+    var entry = RSSFeedEntry(links: [])
 
     if let title = try item.nodes(forXPath: "./title").first {
       entry.title = title.stringValue!
@@ -101,11 +143,10 @@ func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
   }
 
   return feed
-
 }
 
-func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
-  var feed = Feed(entries: [])
+func parseRSS2Document(_ document: XMLDocument) throws -> RSSFeed {
+  var feed = RSSFeed(entries: [])
 
   if let title = try document.nodes(forXPath: "/rss/channel/title").first {
     feed.title = title.stringValue!
@@ -120,7 +161,7 @@ func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
   }
 
   for item in try document.nodes(forXPath: "/rss/channel/item") {
-    var entry = FeedEntry(links: [])
+    var entry = RSSFeedEntry(links: [])
 
     if let title = try item.nodes(forXPath: "./title").first {
       entry.title = title.stringValue!
@@ -149,41 +190,4 @@ func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
   }
 
   return feed
-}
-
-// SEE: https://www.rfc-editor.org/rfc/rfc5005.html
-public struct RSSFeed {
-  var url: URL
-
-  public init(url: URL) {
-    self.url = url
-  }
-
-  public func fetch() async throws {
-    var request = HTTPRequest(method: .get, url: self.url)
-    request.headerFields[.accept] = "application/atom+xml"
-    request.headerFields[.userAgent] = "RSSBar/1.0"
-
-    let (responseBody, _) = try await URLSession.shared.download(
-      for: request)
-
-    // let x = parseRSS(contentsOf: responseBody)!
-  }
-
-}
-
-public struct Feed: Equatable {
-  public var title: String?
-  public var updated: Date?
-  public var entries: [FeedEntry]
-}
-
-public struct FeedEntry: Equatable {
-  public var title: String?
-  public var links: [URL]
-  public var summary: String?
-  public var id: String?
-  public var updated: Date?
-  public var contentType: String?
-  public var content: String?
 }
