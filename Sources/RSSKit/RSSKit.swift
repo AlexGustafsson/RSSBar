@@ -101,54 +101,47 @@ func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
   }
 
   return feed
+
 }
 
 func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
-  var feed = Feed()
+  var feed = Feed(entries: [])
 
   if let title = try document.nodes(forXPath: "/rss/channel/title").first {
     feed.title = title.stringValue!
   }
 
+  // TODO: Use last build date, fall back to pub date
   if let lastBuildDate = try document.nodes(
     forXPath: "/rss/channel/lastBuildDate"
   )
   .first {
-    let dateFormatter = DateFormatter()
-    dateFormatter.locale = Locale(identifier: "en_US")
-    // Fri, 21 Jul 2023 09:04 EDT
-    dateFormatter.dateFormat = "E, d LLL y H:m z"
-    let date = dateFormatter.date(from: lastBuildDate.stringValue!)!
-    feed.updated = date
+    feed.updated = Date(fromRFC2822: lastBuildDate.stringValue!)
   }
 
   for item in try document.nodes(forXPath: "/rss/channel/item") {
     var entry = FeedEntry(links: [])
 
-    if let title = try item.nodes(forXPath: "/rss/channel/item/title").first {
+    if let title = try item.nodes(forXPath: "./title").first {
       entry.title = title.stringValue!
     }
 
-    if let link = try item.nodes(forXPath: "/rss/channel/item/link").first {
+    if let link = try item.nodes(forXPath: "./link").first {
       entry.links = [URL(string: link.stringValue!)!]
     }
 
     if let description = try item.nodes(
-      forXPath: "/rss/channel/item/description"
+      forXPath: "./description"
     ).first {
       entry.summary = description.stringValue!
     }
 
-    if let pubDate = try item.nodes(forXPath: "/rss/channel/item/pubDate").first
-    {
-      let dateFormatter = DateFormatter()
-      dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-      dateFormatter.dateFormat = "E, d LLL y H:m z"
-      let date = dateFormatter.date(from: pubDate.stringValue!)!
-      feed.updated = date
+    // TODO: Use last build date, fall back to pub date
+    if let pubDate = try item.nodes(forXPath: "./pubDate").first {
+      entry.updated = Date(fromRFC2822: pubDate.stringValue!)
     }
 
-    if let guid = try item.nodes(forXPath: "/rss/channel/item/guid").first {
+    if let guid = try item.nodes(forXPath: "./guid").first {
       entry.id = guid.stringValue!
     }
 
@@ -179,20 +172,18 @@ public struct RSSFeed {
 
 }
 
-public struct Feed {
-  var title: String?
-  var updated: Date?
-  var entries: [FeedEntry]
-
-  init() {
-    self.entries = []
-  }
+public struct Feed: Equatable {
+  public var title: String?
+  public var updated: Date?
+  public var entries: [FeedEntry]
 }
 
-public struct FeedEntry {
-  var title: String?
-  var links: [URL]
-  var summary: String?
-  var id: String?
-  var updated: Date?
+public struct FeedEntry: Equatable {
+  public var title: String?
+  public var links: [URL]
+  public var summary: String?
+  public var id: String?
+  public var updated: Date?
+  public var contentType: String?
+  public var content: String?
 }

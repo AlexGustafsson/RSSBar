@@ -1,6 +1,15 @@
 {
-  "originHash" : "249e5597761da01256b9595a16f9bf20ade2dc5dda174b8d6748f863902bf4ef",
+  "originHash" : "849abb6f0441e541c0bdc256149f23ab5946bdd74f05629a8ca081d0db7371b9",
   "pins" : [
+    {
+      "identity" : "swift-custom-dump",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-custom-dump",
+      "state" : {
+        "revision" : "f01efb26f3a192a0e88dcdb7c3c391ec2fc25d9c",
+        "version" : "1.3.0"
+      }
+    },
     {
       "identity" : "swift-http-types",
       "kind" : "remoteSourceControl",
@@ -8,6 +17,15 @@
       "state" : {
         "revision" : "9bee2fdb79cc740081abd8ebd80738063d632286",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "6f30bdba373bbd7fbfe241dddd732651f2fbd1e2",
+        "version" : "1.1.2"
       }
     }
   ],
