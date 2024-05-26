@@ -51,8 +51,56 @@ public func parseRSS(data: Data) throws -> Feed {
 }
 
 func parseAtomDocument(_ document: XMLDocument) throws -> Feed {
-  // TODO
-  return Feed()
+  var feed = Feed(entries: [])
+
+  if let title = try document.nodes(forXPath: "/feed/title").first {
+    feed.title = title.stringValue!
+  }
+
+  if let lastBuildDate = try document.nodes(
+    forXPath: "/feed/updated"
+  )
+  .first {
+    feed.updated = Date(fromRFC3339: lastBuildDate.stringValue!)
+  }
+
+  for item in try document.nodes(forXPath: "/feed/entry") {
+    var entry = FeedEntry(links: [])
+
+    if let title = try item.nodes(forXPath: "./title").first {
+      entry.title = title.stringValue!
+    }
+
+    let links = try item.nodes(forXPath: "./link/@href")
+    entry.links = links.map {
+      URL(string: $0.stringValue!)!
+    }
+
+    if let summary = try item.nodes(
+      forXPath: "./summary"
+    ).first {
+      entry.summary = summary
+        .stringValue!
+    }
+
+    if let updated = try item.nodes(forXPath: "./updated").first {
+      entry.updated = Date(fromRFC3339: updated.stringValue!)
+    }
+
+    if let id = try item.nodes(forXPath: "./id").first {
+      entry.id = id.stringValue!
+    }
+
+    if let content = try item.nodes(forXPath: "./content").first {
+      entry.contentType = try content.nodes(forXPath: "./@type")
+        .first?.stringValue!
+      entry.content = content.stringValue
+    }
+
+    feed.entries.append(entry)
+  }
+
+  return feed
 }
 
 func parseRSS2Document(_ document: XMLDocument) throws -> Feed {
