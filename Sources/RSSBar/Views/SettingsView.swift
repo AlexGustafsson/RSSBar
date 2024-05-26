@@ -30,7 +30,7 @@ struct AddFeedFormView: View {
   }
 }
 
-struct AddFeedView: View {
+struct SettingsView: View {
   let trees = [
     Tree(
       name: "News",

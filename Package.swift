@@ -24,6 +24,10 @@ let package = Package(
   targets: [
     .executableTarget(
       name: "RSSBar",
+      dependencies: [
+        .product(name: "HTTPTypes", package: "swift-http-types"),
+        .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
+      ],
       resources: [
         .copy("Resources/icon.png")
       ]
