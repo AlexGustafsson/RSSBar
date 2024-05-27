@@ -27,7 +27,7 @@ struct ListItem: View {
         AsyncImage(url: favicon) { image in
           image.resizable()
         } placeholder: {
-          Image(systemName: "newspaper.circle.fill")
+          Image(systemName: "newspaper.circle.fill").resizable()
         }.frame(width: 24, height: 24)
         Text("GitHub.com").frame(maxWidth: .infinity, alignment: .leading)
           .padding(
