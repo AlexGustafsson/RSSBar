@@ -26,6 +26,12 @@ public struct CloseMenuBarAction {
   }
 }
 
+public struct QuitAppAction {
+  public func callAsFunction() {
+    NSApplication.shared.terminate(nil)
+  }
+}
+
 extension NSStatusItem {
   /// Close a StatusItem by simulating the click of a menu item.
   public func close() {
@@ -37,5 +43,11 @@ extension NSStatusItem {
 extension EnvironmentValues {
   public var closeMenuBar: CloseMenuBarAction {
     return CloseMenuBarAction()
+  }
+}
+
+extension EnvironmentValues {
+  public var quitApp: QuitAppAction {
+    return QuitAppAction()
   }
 }

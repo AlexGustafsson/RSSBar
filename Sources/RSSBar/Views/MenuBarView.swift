@@ -85,6 +85,7 @@ struct ListItemLite: View {
 struct MenuBarView: View {
   @Environment(\.openWindow) private var openWindow
   @Environment(\.closeMenuBar) private var closeMenuBar
+  @Environment(\.quitApp) private var quitApp
 
   @State private var hoveredListItem: Int?
 
@@ -148,6 +149,7 @@ struct MenuBarView: View {
           title: "Quit",
           action: {
             closeMenuBar()
+            quitApp()
           })
 
       }
