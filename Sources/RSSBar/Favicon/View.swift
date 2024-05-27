@@ -11,16 +11,27 @@ struct Favicon: View {
     } placeholder: {
       Image(systemName: "newspaper.circle.fill").resizable()
     }.task {
-      // TODO: Cache
+      let origin = url.host()!
       do {
-        let urls = try await FaviconDownloader.identifyIcons(
-          from: url.absoluteString)
-        print(urls)
-        if let url = urls.first {
-          favicon = try await FaviconDownloader.download(contentsOf: url)
+        if let data = DiskCache.shared.urlIfExists(forKey: origin) {
+          favicon = data
         } else {
-          // TODO: Log
-          print("No favicon")
+          let urls = try await FaviconDownloader.identifyIcons(
+            from: url.absoluteString)
+          print(urls)
+          if let url = urls.first {
+
+            favicon = try await FaviconDownloader.download(contentsOf: url)
+            do {
+              try DiskCache.shared.insert(
+                Data(contentsOf: favicon!), forKey: origin)
+            } catch {
+              print("Failed to cache content \(error)")
+            }
+          } else {
+            // TODO: Log
+            print("No favicon")
+          }
         }
       } catch {
         // TODO: Log

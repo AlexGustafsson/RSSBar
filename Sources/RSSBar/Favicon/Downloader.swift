@@ -10,6 +10,7 @@ enum FaviconDownloadError: Error {
 
 struct FaviconDownloader {
   public static func identifyIcons(from url: String) async throws -> [URL] {
+    print("Identifying")
     var urls: [URL] = []
 
     guard let origin = URLComponents(string: url) else {
@@ -67,6 +68,7 @@ struct FaviconDownloader {
   }
 
   public static func download(contentsOf url: URL) async throws -> URL? {
+    print("Downloading")
     var request = HTTPRequest(method: .get, url: url)
     request.headerFields[.accept] = "image/svg+xml, image/png, image/x-icon"
     request.headerFields[.userAgent] = "RSSBar/1.0"
