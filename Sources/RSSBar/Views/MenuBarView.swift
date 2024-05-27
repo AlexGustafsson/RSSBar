@@ -18,17 +18,14 @@ struct MyButtonStyle: ButtonStyle {
 }
 
 struct ListItem: View {
+  let url: URL
+
   @State private var isHovering = false
-  @State private var favicon: URL?
 
   var body: some View {
     Button(action: {}) {
       HStack(alignment: .center) {
-        AsyncImage(url: favicon) { image in
-          image.resizable()
-        } placeholder: {
-          Image(systemName: "newspaper.circle.fill").resizable()
-        }.frame(width: 24, height: 24)
+        Favicon(url: url).frame(width: 24, height: 24)
         Text("GitHub.com").frame(maxWidth: .infinity, alignment: .leading)
           .padding(
             EdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
@@ -44,20 +41,7 @@ struct ListItem: View {
     ).onHover(
       perform: { flag in
         self.isHovering = flag
-      }).task {
-        // TODO: Cache
-        do {
-          let urls = try await Favicon.identifyIcons(
-            from: "https://github.com")
-          print(urls)
-          if let url = urls.first {
-            favicon = try await Favicon.fetch(contentsOf: url)
-          }
-        } catch {
-          // TODO: Log
-          print("Failed to fetch favicon! \(error)")
-        }
-      }
+      })
   }
 }
 
@@ -106,10 +90,8 @@ struct MenuBarView: View {
         EdgeInsets(top: 2, leading: 6, bottom: 0, trailing: 0)
       ).foregroundStyle(.secondary)
       LazyVStack(alignment: .leading, spacing: 0) {
-        ListItem()
-        ListItem()
-        ListItem()
-        ListItem()
+        ListItem(url: URL(string: "https://github.com")!)
+        ListItem(url: URL(string: "https://news.ycombinator.com")!)
       }
 
       Divider()
@@ -122,10 +104,8 @@ struct MenuBarView: View {
         .secondary
       )
       LazyVStack(alignment: .leading, spacing: 0) {
-        ListItem()
-        ListItem()
-        ListItem()
-        ListItem()
+        ListItem(url: URL(string: "https://github.com")!)
+        ListItem(url: URL(string: "https://news.ycombinator.com")!)
       }
 
       Divider()

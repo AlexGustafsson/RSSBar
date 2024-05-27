@@ -2,18 +2,18 @@ import Foundation
 import HTTPTypes
 import HTTPTypesFoundation
 
-enum FaviconError: Error {
+enum FaviconDownloadError: Error {
   case invalidURL
   case notFound
   case badStatus
 }
 
-struct Favicon {
+struct FaviconDownloader {
   public static func identifyIcons(from url: String) async throws -> [URL] {
     var urls: [URL] = []
 
     guard let origin = URLComponents(string: url) else {
-      throw FaviconError.invalidURL
+      throw FaviconDownloadError.invalidURL
     }
 
     // Always include the well-known favicon.ico file
@@ -58,15 +58,15 @@ struct Favicon {
     for icon in try document.nodes(
       forXPath: "/html/head/link[@rel=(\"icon\", \"alternate icon\")]/@href")
     {
-      if let url = URL(string: icon.stringValue!) {
-        urls.append(url)
+      if let url = URLComponents(string: icon.stringValue!) {
+        urls.append(url.url(relativeTo: documentLocation.url!)!)
       }
     }
 
     return urls
   }
 
-  public static func fetch(contentsOf url: URL) async throws -> URL? {
+  public static func download(contentsOf url: URL) async throws -> URL? {
     var request = HTTPRequest(method: .get, url: url)
     request.headerFields[.accept] = "image/svg+xml, image/png, image/x-icon"
     request.headerFields[.userAgent] = "RSSBar/1.0"
@@ -77,7 +77,7 @@ struct Favicon {
     if response.status.code == 400 {
       return nil
     } else if response.status.code != 200 {
-      throw FaviconError.badStatus
+      throw FaviconDownloadError.badStatus
     }
 
     return responseBody
