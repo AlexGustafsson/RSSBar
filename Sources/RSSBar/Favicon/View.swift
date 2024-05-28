@@ -9,7 +9,11 @@ struct Favicon: View {
     AsyncImage(url: favicon) { image in
       image.resizable()
     } placeholder: {
-      Image(systemName: "newspaper.circle.fill").resizable()
+      ZStack {
+        RoundedRectangle(cornerRadius: 6).fill(.gray).frame(
+          width: .infinity, height: .infinity)
+        Text(url.host()?.first?.description.uppercased() ?? "")
+      }
     }.task {
       let origin = url.host()!
       do {
