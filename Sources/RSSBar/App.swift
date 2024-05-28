@@ -1,10 +1,11 @@
+import SettingsAccess
 import SwiftUI
 
 @main
 struct RSSBar: App {
   var body: some Scene {
     MenuBarExtra {
-      MenuBarView()
+      MenuBarView().openSettingsAccess()
     } label: {
       Label("RSSBar", systemImage: "star")
     }.menuBarExtraStyle(.window)
@@ -15,9 +16,8 @@ struct RSSBar: App {
     .windowStyle(.hiddenTitleBar)
     .defaultPosition(.center)
 
-    Window("Settings", id: "settings") {
+    Settings {
       SettingsView()
     }
-
   }
 }

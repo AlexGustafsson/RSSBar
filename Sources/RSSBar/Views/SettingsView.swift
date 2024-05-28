@@ -1,124 +1,145 @@
 import Foundation
 import SwiftUI
 
-struct Tree: Identifiable, Hashable {
-  let id = UUID()
-  var name: String
-  var level: Int = 0
-  var children: [Tree]? = nil
-}
-
-struct AddFeedFormView: View {
-  @State private var url: String = ""
-  @State private var name: String = ""
+struct GeneralSettingsView: View {
+  @AppStorage("showPreview") private var showPreview = true
+  @AppStorage("fontSize") private var fontSize = 12.0
 
   var body: some View {
     Form {
-      Section {
-        // TODO: Read favicon / image as soon as we have a URL
-        Image(systemName: "network").resizable()
-          .scaledToFit()
-          .frame(width: 128.0, height: 128.0)
-        TextField("Feed URL", text: $url).textContentType(.URL)
-          .disableAutocorrection(true)
-        TextField("Display name", text: $name)
+      Toggle("Show Previews", isOn: $showPreview)
+      Slider(value: $fontSize, in: 9...96) {
+        Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
       }
-      Section {
-        Button("Check now", action: {})
+    }
+    .padding(20)
+    .frame(width: 350, height: 100)
+  }
+}
+
+struct AdvancedSettingsView: View {
+  @AppStorage("showPreview") private var showPreview = true
+  @AppStorage("fontSize") private var fontSize = 12.0
+
+  var body: some View {
+    Form {
+      Toggle("Show Previews", isOn: $showPreview)
+      Slider(value: $fontSize, in: 9...96) {
+        Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
       }
-    }.formStyle(.columns).frame(maxWidth: 400)
+    }
+    .padding(20)
+    .frame(width: 350, height: 100)
+  }
+}
+
+struct FeedItemView: View {
+  var body: some View {
+    HStack {
+      Favicon(
+        url: URL(string: "https://github.com/releases/traefik.atom")!
+      )
+      .frame(
+        width: 24, height: 24)
+
+      VStack(alignment: .leading) {
+        Text("Traefik releases")
+        Text("github.com/releases/traefik.atom").font(.footnote)
+          .foregroundStyle(.secondary)
+      }.frame(maxWidth: .infinity, alignment: .topLeading)
+
+      Button {
+
+      } label: {
+        Image(systemName: "info.circle").resizable().foregroundStyle(
+          .secondary
+        ).frame(
+          width: 16, height: 16)
+      }.buttonStyle(PlainButtonStyle())
+    }.padding(4)
+  }
+}
+
+struct FeedsSettingsView: View {
+  @State private var filter: String = ""
+  @FocusState var isFocused: Bool
+
+  // TODO: insetGrouped: https://lucajonscher.medium.com/create-an-inset-grouped-list-in-swiftui-for-macos-20c0bcfaaa7
+  var body: some View {
+    Form {
+      Section {
+        HStack {
+          // TODO: No way to replicate searchbar?
+          // SEE: https://www.fullstackstanley.com/articles/replicating-the-macos-search-textfield-in-swiftui/
+          HStack {
+            Image(systemName: "magnifyingglass")
+            TextField(
+              "Search",
+              text: $filter,
+              prompt: Text("Search")
+            )
+            .labelsHidden()
+            .disableAutocorrection(true)
+            .onSubmit {
+              print(filter)
+            }.focused($isFocused)
+          }
+
+          Menu {
+            Button("New feed") {
+
+            }
+            Button("New group") {
+
+            }
+          } label: {
+            Image(systemName: "plus")
+          }
+          .fixedSize()
+
+        }
+      }
+
+      Section("Updates") {
+        List {
+          FeedItemView()
+          FeedItemView()
+        }
+      }
+
+      Section("News") {
+        List {
+          FeedItemView()
+          FeedItemView()
+        }
+      }
+    }.formStyle(.grouped).padding(20)
   }
 }
 
 struct SettingsView: View {
-  let trees = [
-    Tree(
-      name: "News",
-      children: [
-        Tree(name: "news.ycombinator.com", level: 1),
-        Tree(name: "One-2", level: 1),
-        Tree(name: "One-3", level: 1),
-      ]),
-    Tree(
-      name: "GitHub relases",
-      children: [
-        Tree(name: "Quickterm", level: 1),
-        Tree(name: "RSSBar", level: 1),
-        Tree(name: "homebridge-wol", level: 1),
-        Tree(name: "threes", level: 1),
-      ]),
-    Tree(name: "Empty"),
-  ]
-
-  @State private var selection: Tree?
-
-  var body: some View {
-
-    NavigationSplitView {
-      List(selection: $selection) {
-        Section("Feeds") {
-          OutlineGroup(trees, id: \.id, children: \.children) { tree in
-            NavigationLink(
-              tree.name, value: tree
-            ).contextMenu(menuItems: {
-              Button("Add feed") {
-
-              }
-              Button("Delete collection") {
-
-              }
-
-            })
-            // Doesn't work to have navigation in hstack - selected item not
-            // updated. So we can't have icons in them?
-            // HStack(alignment: .center) {
-            // Spacer()
-            // Image(systemName: "minus.circle")
-            //   .onTapGesture {
-            //   }
-            // if tree.level == 0 {
-            //   Image(systemName: "plus.circle")
-            //     .onTapGesture {
-            //     }
-            // }
-          }
-        }
-      }.listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-          VStack(spacing: 0) {
-            Divider()
-            HStack {
-              Button(
-                "New group",
-                systemImage: "plus.circle",
-                action: {
-
-                }
-              ).buttonStyle(PlainButtonStyle())
-              Spacer()
-            }
-            .padding(8)
-          }
-        }
-    } detail: {
-      if let tree = selection {
-        Text("Tree element \(tree.name)")
-          .navigationTitle(tree.name)
-      } else {
-        AddFeedFormView()
-      }
-    }.navigationSplitViewStyle(.balanced).toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        Button(action: {
-          // Action to perform
-        }) {
-          // Custom view for the button
-          Text("Add feed")
-        }
-
-      }
-    }
-
+  private enum Tabs: Hashable {
+    case general, feeds, advanced
   }
-
+  var body: some View {
+    TabView {
+      GeneralSettingsView()
+        .tabItem {
+          Label("General", systemImage: "gear")
+        }
+        .tag(Tabs.general)
+      FeedsSettingsView()
+        .tabItem {
+          Label("Feeds", systemImage: "list.bullet")
+        }
+        .tag(Tabs.feeds)
+      AdvancedSettingsView()
+        .tabItem {
+          Label("Advanced", systemImage: "gearshape.2")
+        }
+        .tag(Tabs.advanced)
+    }
+    .padding(20)
+    .frame(width: 500, height: 720)
+  }
 }

@@ -70,6 +70,7 @@ struct MenuBarView: View {
   @Environment(\.openWindow) private var openWindow
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.quitApp) private var quitApp
+  @Environment(\.openSettings) private var openSettings
 
   @State private var hoveredListItem: Int?
 
@@ -121,9 +122,10 @@ struct MenuBarView: View {
         ListItemLite(
           title: "Settings",
           action: {
-            openWindow(id: "settings")
+            try? openSettings()
             closeMenuBar()
-          })
+          }
+        )
 
         ListItemLite(
           title: "Quit",

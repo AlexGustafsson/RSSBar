@@ -20,6 +20,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
+    .package(url: "https://github.com/orchetect/SettingsAccess", from: "1.4.0"),
   ],
   targets: [
     .executableTarget(
@@ -27,6 +28,7 @@ let package = Package(
       dependencies: [
         .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
+        .product(name: "SettingsAccess", package: "SettingsAccess"),
       ],
       resources: [
         .copy("Resources/icon.png")
