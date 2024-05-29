@@ -48,5 +48,4 @@ test:
 	mkdir -p .build/RSSBar.app/Contents/MacOS
 	cp .build/release/RSSBar .build/RSSBar.app/Contents/MacOS
 	cp SupportingFiles/RSSBar/Info.plist .build/RSSBar.app/Contents
-	cp -r SupportingFiles/RSSBar/Resources .build/RSSBar.app/Contents/Resources
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
