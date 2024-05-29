@@ -12,7 +12,6 @@ struct GeneralSettingsView: View {
         Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
       }
     }
-    .padding(20)
     .frame(width: 350, height: 100)
   }
 }
@@ -28,7 +27,6 @@ struct AdvancedSettingsView: View {
         Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
       }
     }
-    .padding(20)
     .frame(width: 350, height: 100)
   }
 }
@@ -41,6 +39,12 @@ struct FeedItemDetailsView: View {
   @State var updateInterval = ""
   @State var editing = false
   @State var presentDeleteAlert = false
+
+  private var action: () -> Void
+
+  init(action: @escaping () -> Void) {
+    self.action = action
+  }
 
   var body: some View {
     VStack(spacing: 0) {
@@ -93,15 +97,15 @@ struct FeedItemDetailsView: View {
 
       // Footer
       HStack {
-        Button("Delete feed") {
+        Button("Delete feed...") {
           presentDeleteAlert = true
         }.confirmationDialog(
           "Are you sure you want to delete this feed?",
           isPresented: $presentDeleteAlert
         ) {
           Button("Delete feed", role: .destructive) {
-            print("delete")
-          }
+            action()
+          }.keyboardShortcut(.delete)
         } message: {
           Text(
             "The feed will be removed, along with the history of read entries.")
@@ -110,14 +114,15 @@ struct FeedItemDetailsView: View {
         Spacer()
         Button(editing ? "Cancel" : "Edit") {
           editing = !editing
-        }
+        }.keyboardShortcut(editing ? .cancelAction : nil)
         Button(editing ? "Save" : "Done") {
           if editing {
             editing = !editing
+          } else {
+            action()
           }
-        }.tint(.primary)
+        }.keyboardShortcut(.defaultAction)
       }.padding(20)
-
     }
   }
 }
@@ -150,15 +155,79 @@ struct FeedItemView: View {
         .sheet(isPresented: $shouldPresentSheet) {
           print("Sheet dismissed!")
         } content: {
-          FeedItemDetailsView()
+          FeedItemDetailsView {
+            shouldPresentSheet = false
+          }
         }
     }.padding(4)
+  }
+}
+
+struct FeedGroupView: View {
+  @State private var presentDeleteAlert: Bool = false
+  @State private var presentPrompt: Bool = false
+
+  @State private var newName: String = ""
+
+  var body: some View {
+    Section("Default") {
+      List {
+        FeedItemView()
+        FeedItemView()
+      }
+
+      HStack {
+        Spacer()
+        Menu {
+          Button("Add feed") {
+
+          }
+          Button("Move up") {
+
+          }
+          Button("Move down") {
+
+          }
+          Button("Edit name") {
+            presentPrompt = true
+          }
+          Button("Delete", role: .destructive) {
+            presentDeleteAlert = true
+          }
+        } label: {
+          Image(systemName: "ellipsis")
+        }
+        .fixedSize()
+        .confirmationDialog(
+          "Are you sure you want to delete this group?",
+          isPresented: $presentDeleteAlert
+        ) {
+          Button("Delete group", role: .destructive) {
+            // TOOD
+          }.keyboardShortcut(.delete)
+        } message: {
+          Text(
+            "The group will be removed, along with all of the feeds it contains."
+          )
+        }.dialogIcon(Image(systemName: "trash.circle.fill"))
+        .alert("Edit group name", isPresented: $presentPrompt) {
+          TextField("Name", text: $newName, prompt: Text("Default"))
+          // NOTE: Don't ask why, but this button has to be here. If it's not,
+          // there'll be a default OK button anyway that works, but without it
+          // the TextField is not shown
+          Button("OK") {}
+        }.dialogIcon(Image(systemName: "textformat.abc"))
+      }
+    }
+
   }
 }
 
 struct FeedsSettingsView: View {
   @State private var filter: String = ""
   @FocusState var isFocused: Bool
+  @State var presentPrompt: Bool = false
+  @State var newName: String = ""
 
   // TODO: insetGrouped: https://lucajonscher.medium.com/create-an-inset-grouped-list-in-swiftui-for-macos-20c0bcfaaa7
   var body: some View {
@@ -182,34 +251,29 @@ struct FeedsSettingsView: View {
           }
 
           Menu {
-            Button("New feed") {
-
-            }
             Button("New group") {
-
+              presentPrompt = true
             }
           } label: {
             Image(systemName: "plus")
           }
-          .fixedSize()
+          .fixedSize().alert("Add new group", isPresented: $presentPrompt) {
+            TextField("Name", text: $newName, prompt: Text("Group name"))
+            // NOTE: Don't ask why, but this button has to be here. If it's not,
+            // there'll be a default OK button anyway that works, but without it
+            // the TextField is not shown
+            Button("OK") {}
+          } message: {
+            Text("Select a name for the new group.")
+          }.dialogIcon(Image(systemName: "textformat.abc"))
 
         }
       }
 
-      Section("Updates") {
-        List {
-          FeedItemView()
-          FeedItemView()
-        }
-      }
-
-      Section("News") {
-        List {
-          FeedItemView()
-          FeedItemView()
-        }
-      }
-    }.formStyle(.grouped).padding(20)
+      FeedGroupView()
+      FeedGroupView()
+      FeedGroupView()
+    }.formStyle(.grouped)
   }
 }
 

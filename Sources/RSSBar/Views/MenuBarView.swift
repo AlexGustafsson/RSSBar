@@ -85,6 +85,13 @@ struct MenuBarView: View {
 
       Divider()
 
+      LazyVStack(alignment: .leading, spacing: 0) {
+        ListItem(url: URL(string: "https://github.com")!)
+        ListItem(url: URL(string: "https://news.ycombinator.com")!)
+      }
+
+      Divider()
+
       Text("News").fontWeight(.bold).frame(
         maxWidth: .infinity, alignment: .leading
       ).font(.subheadline).padding(
