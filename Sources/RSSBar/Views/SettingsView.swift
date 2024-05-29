@@ -33,7 +33,98 @@ struct AdvancedSettingsView: View {
   }
 }
 
+struct FeedItemDetailsView: View {
+  @State var name = "Traefik releases"
+  @State var newName = ""
+  @State var url = "https://github.com/releases/traefik.atom"
+  @State var newUrl = ""
+  @State var updateInterval = ""
+  @State var editing = false
+  @State var presentDeleteAlert = false
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Form {
+        Section {
+          HStack {
+            Favicon(
+              url: URL(string: url)!
+            )
+            .frame(
+              width: 48, height: 48)
+            VStack(alignment: .leading) {
+              if editing {
+                TextField("Name", text: $newName, prompt: Text(name))
+                  .textFieldStyle(.plain)
+                  .labelsHidden().font(.headline)
+              } else {
+                Text(name).font(.headline)
+              }
+              Text("Last fetched 17:25").font(.footnote)
+                .foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity, alignment: .topLeading)
+          }
+
+          LabeledContent("Feed") {
+            if editing {
+              TextField("Feed", text: $newUrl, prompt: Text(url)).labelsHidden()
+            } else {
+              Text(verbatim: url)
+            }
+          }
+        }
+
+        Section("Options") {
+          List {
+            Picker("Update interval", selection: $updateInterval) {
+              Text("Default")
+              Text("Daily")
+              Text("Other")
+            }
+
+            Button("Clear history", role: .destructive) {
+
+            }
+          }
+        }
+      }.padding(20).formStyle(.grouped)
+
+      Divider()
+
+      // Footer
+      HStack {
+        Button("Delete feed") {
+          presentDeleteAlert = true
+        }.confirmationDialog(
+          "Are you sure you want to delete this feed?",
+          isPresented: $presentDeleteAlert
+        ) {
+          Button("Delete feed", role: .destructive) {
+            print("delete")
+          }
+        } message: {
+          Text(
+            "The feed will be removed, along with the history of read entries.")
+        }.dialogIcon(Image(systemName: "trash.circle.fill"))
+
+        Spacer()
+        Button(editing ? "Cancel" : "Edit") {
+          editing = !editing
+        }
+        Button(editing ? "Save" : "Done") {
+          if editing {
+            editing = !editing
+          }
+        }.tint(.primary)
+      }.padding(20)
+
+    }
+  }
+}
+
 struct FeedItemView: View {
+  @State var shouldPresentSheet = false
+
   var body: some View {
     HStack {
       Favicon(
@@ -49,13 +140,18 @@ struct FeedItemView: View {
       }.frame(maxWidth: .infinity, alignment: .topLeading)
 
       Button {
-
+        shouldPresentSheet.toggle()
       } label: {
         Image(systemName: "info.circle").resizable().foregroundStyle(
           .secondary
         ).frame(
           width: 16, height: 16)
       }.buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $shouldPresentSheet) {
+          print("Sheet dismissed!")
+        } content: {
+          FeedItemDetailsView()
+        }
     }.padding(4)
   }
 }
