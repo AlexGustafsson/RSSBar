@@ -21,9 +21,12 @@ struct ListItem: View {
   let url: URL
 
   @State private var isHovering = false
+  @State private var presentContent = false
 
   var body: some View {
-    Button(action: {}) {
+    Button(action: {
+      presentContent = true
+    }) {
       HStack(alignment: .center) {
         Favicon(url: url).frame(width: 24, height: 24)
         Text("GitHub.com").frame(maxWidth: .infinity, alignment: .leading)
@@ -41,7 +44,17 @@ struct ListItem: View {
     ).onHover(
       perform: { flag in
         self.isHovering = flag
-      })
+      }).sheet(isPresented: $presentContent) {
+        ScrollView {
+          VStack {
+            Text("New release!")
+            Text("New release!")
+            Text("New release!")
+          }
+        }.padding(6)
+
+      }
+
   }
 }
 
@@ -127,7 +140,7 @@ struct MenuBarView: View {
           })
 
         ListItemLite(
-          title: "Settings",
+          title: "Settings...",
           action: {
             try? openSettings()
             closeMenuBar()
