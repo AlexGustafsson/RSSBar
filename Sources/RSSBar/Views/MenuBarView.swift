@@ -41,20 +41,38 @@ struct ListItem: View {
     }
     .buttonStyle(
       MyButtonStyle(isHovering: isHovering)
-    ).onHover(
-      perform: { flag in
-        self.isHovering = flag
-      }).sheet(isPresented: $presentContent) {
-        ScrollView {
-          VStack {
-            Text("New release!")
-            Text("New release!")
-            Text("New release!")
-          }
-        }.padding(6)
+    ).onHover(perform: { flag in
+      self.isHovering = flag
+    }).popover(isPresented: $presentContent, arrowEdge: .trailing) {
+      List {
+        HStack {
+          VStack(alignment: .leading) {
+            Text("Feed title")
+            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
+          }.frame(maxWidth: .infinity, alignment: .topLeading)
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .foregroundStyle(.secondary)
+        }
+        HStack {
+          VStack(alignment: .leading) {
+            Text("Feed title")
+            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
+          }.frame(maxWidth: .infinity, alignment: .topLeading)
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .foregroundStyle(.secondary)
+        }
+
+        HStack {
+          VStack(alignment: .leading) {
+            Text("Feed title")
+            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
+          }.frame(maxWidth: .infinity, alignment: .topLeading)
+          Image(systemName: "rectangle.portrait.and.arrow.right")
+            .foregroundStyle(.secondary)
+        }
 
       }
-
+    }
   }
 }
 
