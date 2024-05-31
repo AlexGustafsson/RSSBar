@@ -73,7 +73,8 @@ final class RSSTests: XCTestCase {
       ]
     )
 
-    let actual = try RSSFeed(data: Data(input.utf8))
+    let actual = try RSSFeed(
+      data: Data(input.utf8), contentType: "application/atom+xml")
     XCTAssertNoDifference(expected, actual)
 
   }
@@ -215,7 +216,53 @@ final class RSSTests: XCTestCase {
       ]
     )
 
-    let actual = try RSSFeed(data: Data(input.utf8))
+    let actual = try RSSFeed(
+      data: Data(input.utf8), contentType: "application/rss+xml")
+    XCTAssertNoDifference(expected, actual)
+  }
+
+  func testParseJSONFeed() throws {
+    let input = """
+      {
+        "version": "https://jsonfeed.org/version/1.1",
+        "title": "My Example Feed",
+        "home_page_url": "https://example.org/",
+        "feed_url": "https://example.org/feed.json",
+        "items": [
+          {
+              "id": "2",
+              "content_text": "This is a second item.",
+              "url": "https://example.org/second-item"
+          },
+          {
+              "id": "1",
+              "content_html": "<p>Hello, world!</p>",
+              "url": "https://example.org/initial-post"
+          }
+        ]
+      }
+      """
+
+    let expected = RSSFeed(
+      title: "My Example Feed",
+      updated: nil,
+      entries: [
+        RSSFeedEntry(
+          links: [URL(string: "https://example.org/second-item")!],
+          id: "2",
+          contentType: "text/plain",
+          content: "This is a second item."
+        ),
+        RSSFeedEntry(
+          links: [URL(string: "https://example.org/initial-post")!],
+          id: "1",
+          contentType: "text/html",
+          content: "<p>Hello, world!</p>"
+        ),
+      ])
+
+    let actual = try RSSFeed(
+      data: Data(input.utf8), contentType: "application/feed+json")
     XCTAssertNoDifference(expected, actual)
   }
 }

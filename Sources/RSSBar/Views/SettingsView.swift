@@ -156,6 +156,7 @@ struct FeedItemView: View {
           print("Sheet dismissed!")
         } content: {
           // TODO: Use environment to dismiss sheet rather than action?
+          // @Environment(\.dismiss) private var dismiss
           FeedItemDetailsView {
             shouldPresentSheet = false
           }
