@@ -44,34 +44,20 @@ struct ListItem: View {
     ).onHover(perform: { flag in
       self.isHovering = flag
     }).popover(isPresented: $presentContent, arrowEdge: .trailing) {
-      List {
-        HStack {
-          VStack(alignment: .leading) {
-            Text("Feed title")
-            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
-          }.frame(maxWidth: .infinity, alignment: .topLeading)
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .foregroundStyle(.secondary)
-        }
-        HStack {
-          VStack(alignment: .leading) {
-            Text("Feed title")
-            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
-          }.frame(maxWidth: .infinity, alignment: .topLeading)
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .foregroundStyle(.secondary)
-        }
-
-        HStack {
-          VStack(alignment: .leading) {
-            Text("Feed title")
-            Text("12h ago").font(.footnote).foregroundStyle(.secondary)
-          }.frame(maxWidth: .infinity, alignment: .topLeading)
-          Image(systemName: "rectangle.portrait.and.arrow.right")
-            .foregroundStyle(.secondary)
-        }
-
-      }
+      VStack(alignment: .leading, spacing: 0) {
+        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
+        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
+        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
+        Spacer()
+        ListItemLite(
+          title: "Mark all as read",
+          action: {
+            // TODO
+            presentContent = false
+          })
+      }.frame(width: 250, height: 250).padding(
+        EdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
+      )
     }
   }
 }
@@ -87,6 +73,34 @@ struct ListItemLite: View {
         .padding(
           EdgeInsets(top: 1, leading: 2, bottom: 1, trailing: 2)
         ).foregroundColor(.primary)
+    }
+    .buttonStyle(
+      MyButtonStyle(isHovering: isHovering)
+    ).onHover(
+      perform: { flag in
+        self.isHovering = flag
+      })
+  }
+}
+
+struct ListItemLite2: View {
+  var title: any StringProtocol
+  var subtitle: any StringProtocol
+  var action: () -> Void
+  @State private var isHovering = false
+
+  var body: some View {
+    Button(action: action) {
+      HStack {
+        VStack(alignment: .leading) {
+          Text(title).foregroundColor(.primary)
+
+          Text(subtitle).font(.footnote).foregroundColor(.primary)
+        }.frame(maxWidth: .infinity, alignment: .topLeading)
+        Image(systemName: "rectangle.portrait.and.arrow.right")
+          .foregroundColor(.primary)
+
+      }
     }
     .buttonStyle(
       MyButtonStyle(isHovering: isHovering)
