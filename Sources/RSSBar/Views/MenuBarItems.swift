@@ -20,6 +20,8 @@ struct MenuBarFeedItem: View {
   var title: any StringProtocol
   var url: URL
 
+  @Environment(\.closeMenuBar) private var closeMenuBar
+
   @State private var isHovering = false
   @State private var showFeedItems = false
 
@@ -48,6 +50,7 @@ struct MenuBarFeedItem: View {
         MenuBarTextItem(
           action: {
             showFeedItems = false
+            closeMenuBar()
             NSWorkspace.shared.open(URL(string: "https://example.com")!)
           },
           title: "Feed title",
@@ -57,6 +60,7 @@ struct MenuBarFeedItem: View {
         MenuBarTextItem(
           action: {
             showFeedItems = false
+            closeMenuBar()
             NSWorkspace.shared.open(URL(string: "https://example.com")!)
           },
           title: "Feed title",
@@ -67,6 +71,7 @@ struct MenuBarFeedItem: View {
         MenuBarTextItem(
           action: {
             showFeedItems = false
+            closeMenuBar()
             NSWorkspace.shared.open(URL(string: "https://example.com")!)
           },
           title: "Feed title",
