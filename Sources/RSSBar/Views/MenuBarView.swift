@@ -45,9 +45,25 @@ struct ListItem: View {
       self.isHovering = flag
     }).popover(isPresented: $presentContent, arrowEdge: .trailing) {
       VStack(alignment: .leading, spacing: 0) {
-        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
-        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
-        ListItemLite2(title: "Feed title", subtitle: "12h ago", action: {})
+        ListItemLite2(
+          title: "Feed title", subtitle: "12h ago",
+          action: {
+            presentContent = false
+            NSWorkspace.shared.open(URL(string: "https://example.com")!)
+          })
+        ListItemLite2(
+          title: "Feed title", subtitle: "12h ago",
+          action: {
+            presentContent = false
+            NSWorkspace.shared.open(URL(string: "https://example.com")!)
+
+          })
+        ListItemLite2(
+          title: "Feed title", subtitle: "12h ago",
+          action: {
+            presentContent = false
+            NSWorkspace.shared.open(URL(string: "https://example.com")!)
+          })
         Spacer()
         ListItemLite(
           title: "Mark all as read",
