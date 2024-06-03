@@ -1,24 +1,25 @@
-import SwiftUI
+import Foundation
+import SwiftData
 
-// TODO: Expose feeds via environment
-
-@Observable class FeedDataModel {
-  var groups: [FeedGroupModel] = []
-
-  init(groups: [FeedGroupModel]) {
-    self.groups = groups
-  }
+enum FeedUpdateInterval: Codable {
+  case `default`
+  case hourly
+  case daily
+  case weekly
+  case monthly
 }
 
-@Observable class FeedGroupModel: Identifiable {
-  var name: String
-  var feeds: [FeedModel] = []
+@Model class FeedGroup: Identifiable {
+  @Attribute(.unique) var name: String
+  @Relationship(deleteRule: .cascade, inverse: \Feed.group) var feeds: [Feed] =
+    []
+  var index: Int?
 
   init(name: String) {
     self.name = name
   }
 
-  convenience init(name: String, feeds: [FeedModel]) {
+  convenience init(name: String, feeds: [Feed] = []) {
     self.init(name: name)
     self.feeds = feeds
   }
@@ -28,45 +29,48 @@ import SwiftUI
   }
 }
 
-@Observable class FeedModel: Identifiable {
-  var id: String
-  var url: URL
-  var name: String
-  var items: [FeedItemModel] = []
+@Model class Feed: Identifiable {
+  @Attribute(.unique) var name: String
+  @Attribute(.unique) var url: URL
 
-  init(id: String, url: URL, name: String) {
-    self.id = id
-    self.url = url
+  @Relationship(deleteRule: .cascade) var items: [FeedItem] = []
+  var updateInterval: FeedUpdateInterval = FeedUpdateInterval.default
+  var lastUpdated: Date?
+
+  var group: FeedGroup?
+
+  init(name: String, url: URL) {
     self.name = name
+    self.url = url
   }
 
-  convenience init(id: String, url: URL, name: String, items: [FeedItemModel]) {
-    self.init(id: id, url: url, name: name)
+  convenience init(
+    name: String,
+    url: URL,
+    items: [FeedItem] = [],
+    updateInterval: FeedUpdateInterval = .default
+  ) {
+    self.init(name: name, url: url)
     self.items = items
+    self.items = items
+    self.updateInterval = updateInterval
+  }
+
+  var id: String {
+    return self.name
   }
 
   var unreadItemsCount: Int {
     items
-      .filter(\.read).count
+      .filter({ item in item.read != nil }).count
   }
-
 }
-
-enum FeedUpdateInterval {
-  case `default`
-  case hourly
-  case daily
-  case weekly
-  case monthly
-}
-
-@Observable class FeedItemModel: Identifiable {
+@Model class FeedItem: Identifiable {
   var id: String
   var title: String
   var date: Date
-  var read: Bool = false
+  var read: Date?
   var url: URL?
-  var updateInterval: FeedUpdateInterval = .default
 
   init(id: String, title: String, date: Date) {
     self.id = id
@@ -75,7 +79,7 @@ enum FeedUpdateInterval {
   }
 
   convenience init(
-    id: String, title: String, date: Date, read: Bool, url: URL?
+    id: String, title: String, date: Date, read: Date?, url: URL?
   ) {
     self.init(id: id, title: title, date: date)
     self.read = read

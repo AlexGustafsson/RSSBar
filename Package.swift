@@ -32,6 +32,14 @@ let package = Package(
       ],
       resources: [
         .copy("Resources/icon.png")
+      ],
+      linkerSettings: [
+        .unsafeFlags([
+          "-Xlinker", "-sectcreate",
+          "-Xlinker", "__TEXT",
+          "-Xlinker", "__info_plist",
+          "-Xlinker", "Sources/RSSBar/Resources/Info.plist",
+        ])
       ]
     ),
     .target(

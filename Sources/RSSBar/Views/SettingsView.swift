@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import SwiftUI
 
 struct GeneralSettingsView: View {
@@ -32,12 +33,14 @@ struct AdvancedSettingsView: View {
 }
 
 struct FeedItemDetailsView: View {
-  @State var feed: FeedModel
+  @State var feed: Feed
   @State var newName = ""
-  @State var newUrl = ""
+  @State var newURL = ""
+  @State var newUpdateInterval = ""
   @State var editing = false
   @State var presentDeleteAlert = false
 
+  @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
 
   var body: some View {
@@ -66,7 +69,7 @@ struct FeedItemDetailsView: View {
           LabeledContent("Feed") {
             if editing {
               TextField(
-                "Feed", text: $newUrl, prompt: Text(feed.url.absoluteString)
+                "Feed", text: $newURL, prompt: Text(feed.url.absoluteString)
               )
               .labelsHidden()
             } else {
@@ -75,9 +78,10 @@ struct FeedItemDetailsView: View {
           }
         }
 
+        // TODO: Disabled when not editing?
         Section("Options") {
           List {
-            Picker("Update interval", selection: $feed.updateInterval) {
+            Picker("Update interval", selection: $newUpdateInterval) {
               Text("Default")
               Text("Hourly")
               Text("Daily")
@@ -103,7 +107,11 @@ struct FeedItemDetailsView: View {
           isPresented: $presentDeleteAlert
         ) {
           Button("Delete feed", role: .destructive) {
-            dismiss()
+            withAnimation {
+              modelContext.delete(feed)
+              try? modelContext.save()
+              dismiss()
+            }
           }.keyboardShortcut(.delete)
         } message: {
           Text(
@@ -116,6 +124,16 @@ struct FeedItemDetailsView: View {
         }.keyboardShortcut(editing ? .cancelAction : nil)
         Button(editing ? "Save" : "Done") {
           if editing {
+            withAnimation {
+              if newName != "" {
+                feed.name = newName
+              }
+              if newURL != "" {
+                feed.url = URL(string: newURL)!
+              }
+              // TODO: Update interval
+              try? modelContext.save()
+            }
             editing = !editing
           } else {
             dismiss()
@@ -126,22 +144,44 @@ struct FeedItemDetailsView: View {
   }
 }
 
+struct AddFeedView: View {
+  @State var group: FeedGroup
+
+  @Environment(\.modelContext) var modelContext
+  @Environment(\.dismiss) var dismiss
+
+  @State private var newName: String = ""
+  @State private var newURL: String = ""
+
+  var body: some View {
+    TextField("Feed name", text: $newName, prompt: Text("Feed name"))
+    TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
+    Button("Add") {
+      withAnimation {
+        group.feeds.append(Feed(name: newName, url: URL(string: newURL)!))
+        try? modelContext.save()
+        dismiss()
+      }
+    }
+  }
+}
+
 struct FeedItemView: View {
-  @State var feed: FeedModel
+  @State var feed: Feed
 
   @State private var shouldPresentSheet = false
 
   var body: some View {
     HStack {
       Favicon(
-        url: URL(string: "https://github.com/releases/traefik.atom")!
+        url: feed.url
       )
       .frame(
         width: 24, height: 24)
 
       VStack(alignment: .leading) {
-        Text("Traefik releases")
-        Text("github.com/releases/traefik.atom").font(.footnote)
+        Text(feed.name)
+        Text(feed.url.absoluteString).font(.footnote)
           .foregroundStyle(.secondary)
       }.frame(maxWidth: .infinity, alignment: .topLeading)
 
@@ -154,7 +194,7 @@ struct FeedItemView: View {
           width: 16, height: 16)
       }.buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $shouldPresentSheet) {
-          print("Sheet dismissed!")
+          // Do noting
         } content: {
           FeedItemDetailsView(feed: feed)
         }
@@ -163,12 +203,15 @@ struct FeedItemView: View {
 }
 
 struct FeedGroupView: View {
-  @State var group: FeedGroupModel
+  @State var group: FeedGroup
 
   @State private var presentDeleteAlert: Bool = false
-  @State private var presentPrompt: Bool = false
+  @State private var presentEditGroupNamePrompt: Bool = false
+  @State private var shouldPresentSheet: Bool = false
 
-  @State private var newName: String = ""
+  @State private var newGroupName: String = ""
+
+  @Environment(\.modelContext) var modelContext
 
   var body: some View {
     Section(group.name) {
@@ -182,7 +225,7 @@ struct FeedGroupView: View {
         Spacer()
         Menu {
           Button("Add feed") {
-
+            shouldPresentSheet = true
           }
           Button("Move up") {
 
@@ -191,7 +234,7 @@ struct FeedGroupView: View {
 
           }
           Button("Edit name") {
-            presentPrompt = true
+            presentEditGroupNamePrompt = true
           }
           Button("Delete", role: .destructive) {
             presentDeleteAlert = true
@@ -205,20 +248,34 @@ struct FeedGroupView: View {
           isPresented: $presentDeleteAlert
         ) {
           Button("Delete group", role: .destructive) {
-            // TOOD
+            withAnimation {
+              modelContext.delete(group)
+            }
           }.keyboardShortcut(.delete)
         } message: {
           Text(
             "The group will be removed, along with all of the feeds it contains."
           )
         }.dialogIcon(Image(systemName: "trash.circle.fill"))
-        .alert("Edit group name", isPresented: $presentPrompt) {
-          TextField("Name", text: $newName, prompt: Text(group.name))
+        .alert(
+          "Edit group name", isPresented: $presentEditGroupNamePrompt
+        ) {
+          TextField("Name", text: $newGroupName, prompt: Text(group.name))
           // NOTE: Don't ask why, but this button has to be here. If it's not,
           // there'll be a default OK button anyway that works, but without it
           // the TextField is not shown
-          Button("OK") {}
+          Button("OK") {
+            withAnimation {
+              group.name = newGroupName
+              try? modelContext.save()
+            }
+          }
         }.dialogIcon(Image(systemName: "textformat.abc"))
+        .sheet(isPresented: $shouldPresentSheet) {
+          // Do noting
+        } content: {
+          AddFeedView(group: group)
+        }
       }
     }
 
@@ -230,7 +287,10 @@ struct FeedsSettingsView: View {
   @FocusState var isFocused: Bool
   @State var presentPrompt: Bool = false
   @State var newName: String = ""
-  @Environment(\.feedData) private var feedData
+
+  @Environment(\.modelContext) var modelContext
+  @Query(sort: \FeedGroup.index) var groups: [FeedGroup]
+  @Query(sort: \Feed.name) var feeds: [Feed]
 
   // TODO: insetGrouped: https://lucajonscher.medium.com/create-an-inset-grouped-list-in-swiftui-for-macos-20c0bcfaaa7
   var body: some View {
@@ -265,7 +325,9 @@ struct FeedsSettingsView: View {
             // NOTE: Don't ask why, but this button has to be here. If it's not,
             // there'll be a default OK button anyway that works, but without it
             // the TextField is not shown
-            Button("OK") {}
+            Button("OK") {
+              modelContext.insert(FeedGroup(name: newName))
+            }
           } message: {
             Text("Select a name for the new group.")
           }.dialogIcon(Image(systemName: "textformat.abc"))
@@ -273,7 +335,7 @@ struct FeedsSettingsView: View {
         }
       }
 
-      ForEach(feedData.groups, id: \.id) { group in
+      ForEach(groups, id: \.id) { group in
         FeedGroupView(group: group)
       }
     }.formStyle(.grouped)

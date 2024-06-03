@@ -17,7 +17,7 @@ private struct MenuBarItemButtonStyle: ButtonStyle {
 }
 
 struct MenuBarFeedItem: View {
-  var feed: FeedModel
+  var feed: Feed
 
   @Environment(\.closeMenuBar) private var closeMenuBar
 

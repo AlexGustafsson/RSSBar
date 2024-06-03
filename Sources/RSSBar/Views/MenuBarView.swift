@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import SwiftUI
 
 struct MenuBarView: View {
@@ -6,7 +7,8 @@ struct MenuBarView: View {
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
-  @Environment(\.feedData) private var feedData
+
+  @Query(sort: \FeedGroup.index) var groups: [FeedGroup]
 
   @State private var hoveredListItem: Int?
 
@@ -22,7 +24,7 @@ struct MenuBarView: View {
 
       Divider()
 
-      ForEach(feedData.groups, id: \.id) { group in
+      ForEach(groups, id: \.id) { group in
         if group.name != "" {
           Text(group.name).fontWeight(.bold).frame(
             maxWidth: .infinity, alignment: .leading
