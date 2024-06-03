@@ -32,19 +32,13 @@ struct AdvancedSettingsView: View {
 }
 
 struct FeedItemDetailsView: View {
-  @State var name = "Traefik releases"
+  @State var feed: FeedModel
   @State var newName = ""
-  @State var url = "https://github.com/releases/traefik.atom"
   @State var newUrl = ""
-  @State var updateInterval = ""
   @State var editing = false
   @State var presentDeleteAlert = false
 
-  private var action: () -> Void
-
-  init(action: @escaping () -> Void) {
-    self.action = action
-  }
+  @Environment(\.dismiss) var dismiss
 
   var body: some View {
     VStack(spacing: 0) {
@@ -52,17 +46,17 @@ struct FeedItemDetailsView: View {
         Section {
           HStack {
             Favicon(
-              url: URL(string: url)!
+              url: feed.url
             )
             .frame(
               width: 48, height: 48)
             VStack(alignment: .leading) {
               if editing {
-                TextField("Name", text: $newName, prompt: Text(name))
+                TextField("Name", text: $newName, prompt: Text(feed.name))
                   .textFieldStyle(.plain)
                   .labelsHidden().font(.headline)
               } else {
-                Text(name).font(.headline)
+                Text(feed.name).font(.headline)
               }
               Text("Last fetched 17:25").font(.footnote)
                 .foregroundStyle(.secondary)
@@ -71,19 +65,24 @@ struct FeedItemDetailsView: View {
 
           LabeledContent("Feed") {
             if editing {
-              TextField("Feed", text: $newUrl, prompt: Text(url)).labelsHidden()
+              TextField(
+                "Feed", text: $newUrl, prompt: Text(feed.url.absoluteString)
+              )
+              .labelsHidden()
             } else {
-              Text(verbatim: url)
+              Text(verbatim: feed.url.absoluteString)
             }
           }
         }
 
         Section("Options") {
           List {
-            Picker("Update interval", selection: $updateInterval) {
+            Picker("Update interval", selection: $feed.updateInterval) {
               Text("Default")
+              Text("Hourly")
               Text("Daily")
-              Text("Other")
+              Text("Weekly")
+              Text("Monthly")
             }
 
             Button("Clear history", role: .destructive) {
@@ -104,7 +103,7 @@ struct FeedItemDetailsView: View {
           isPresented: $presentDeleteAlert
         ) {
           Button("Delete feed", role: .destructive) {
-            action()
+            dismiss()
           }.keyboardShortcut(.delete)
         } message: {
           Text(
@@ -119,7 +118,7 @@ struct FeedItemDetailsView: View {
           if editing {
             editing = !editing
           } else {
-            action()
+            dismiss()
           }
         }.keyboardShortcut(.defaultAction)
       }.padding(20)
@@ -128,7 +127,9 @@ struct FeedItemDetailsView: View {
 }
 
 struct FeedItemView: View {
-  @State var shouldPresentSheet = false
+  @State var feed: FeedModel
+
+  @State private var shouldPresentSheet = false
 
   var body: some View {
     HStack {
@@ -155,27 +156,26 @@ struct FeedItemView: View {
         .sheet(isPresented: $shouldPresentSheet) {
           print("Sheet dismissed!")
         } content: {
-          // TODO: Use environment to dismiss sheet rather than action?
-          // @Environment(\.dismiss) private var dismiss
-          FeedItemDetailsView {
-            shouldPresentSheet = false
-          }
+          FeedItemDetailsView(feed: feed)
         }
     }.padding(4)
   }
 }
 
 struct FeedGroupView: View {
+  @State var group: FeedGroupModel
+
   @State private var presentDeleteAlert: Bool = false
   @State private var presentPrompt: Bool = false
 
   @State private var newName: String = ""
 
   var body: some View {
-    Section("Default") {
+    Section(group.name) {
       List {
-        FeedItemView()
-        FeedItemView()
+        ForEach(group.feeds, id: \.id) { feed in
+          FeedItemView(feed: feed)
+        }
       }
 
       HStack {
@@ -213,7 +213,7 @@ struct FeedGroupView: View {
           )
         }.dialogIcon(Image(systemName: "trash.circle.fill"))
         .alert("Edit group name", isPresented: $presentPrompt) {
-          TextField("Name", text: $newName, prompt: Text("Default"))
+          TextField("Name", text: $newName, prompt: Text(group.name))
           // NOTE: Don't ask why, but this button has to be here. If it's not,
           // there'll be a default OK button anyway that works, but without it
           // the TextField is not shown
@@ -230,6 +230,7 @@ struct FeedsSettingsView: View {
   @FocusState var isFocused: Bool
   @State var presentPrompt: Bool = false
   @State var newName: String = ""
+  @Environment(\.feedData) private var feedData
 
   // TODO: insetGrouped: https://lucajonscher.medium.com/create-an-inset-grouped-list-in-swiftui-for-macos-20c0bcfaaa7
   var body: some View {
@@ -272,9 +273,9 @@ struct FeedsSettingsView: View {
         }
       }
 
-      FeedGroupView()
-      FeedGroupView()
-      FeedGroupView()
+      ForEach(feedData.groups, id: \.id) { group in
+        FeedGroupView(group: group)
+      }
     }.formStyle(.grouped)
   }
 }

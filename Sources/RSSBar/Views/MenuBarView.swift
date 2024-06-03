@@ -6,6 +6,7 @@ struct MenuBarView: View {
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
+  @Environment(\.feedData) private var feedData
 
   @State private var hoveredListItem: Int?
 
@@ -21,49 +22,21 @@ struct MenuBarView: View {
 
       Divider()
 
-      LazyVStack(alignment: .leading, spacing: 0) {
-        MenuBarFeedItem(
-          title: "GitHub", url: URL(string: "https://github.com")!)
-        MenuBarFeedItem(
-          title: "Hacker News",
-          url: URL(string: "https://news.ycombinator.com")!)
+      ForEach(feedData.groups, id: \.id) { group in
+        if group.name != "" {
+          Text(group.name).fontWeight(.bold).frame(
+            maxWidth: .infinity, alignment: .leading
+          ).font(.subheadline).padding(
+            EdgeInsets(top: 2, leading: 6, bottom: 0, trailing: 0)
+          ).foregroundStyle(.secondary)
+        }
+        LazyVStack(alignment: .leading, spacing: 0) {
+          ForEach(group.feeds, id: \.id) { feed in
+            MenuBarFeedItem(feed: feed)
+          }
+        }
+        Divider()
       }
-
-      Divider()
-
-      Text("News").fontWeight(.bold).frame(
-        maxWidth: .infinity, alignment: .leading
-      ).font(.subheadline).padding(
-        EdgeInsets(top: 2, leading: 6, bottom: 0, trailing: 0)
-      ).foregroundStyle(.secondary)
-      LazyVStack(alignment: .leading, spacing: 0) {
-        MenuBarFeedItem(
-          title: "GitHub", url: URL(string: "https://github.com")!)
-        MenuBarFeedItem(
-          title: "Hacker News",
-          url: URL(string: "https://news.ycombinator.com")!)
-
-      }
-
-      Divider()
-
-      Text("Tech").fontWeight(.bold).frame(
-        maxWidth: .infinity, alignment: .leading
-      ).font(.subheadline).padding(
-        EdgeInsets(top: 2, leading: 6, bottom: 0, trailing: 0)
-      ).foregroundStyle(
-        .secondary
-      )
-      LazyVStack(alignment: .leading, spacing: 0) {
-        MenuBarFeedItem(
-          title: "GitHub", url: URL(string: "https://github.com")!)
-        MenuBarFeedItem(
-          title: "Hacker News",
-          url: URL(string: "https://news.ycombinator.com")!)
-
-      }
-
-      Divider()
 
       VStack(alignment: .leading, spacing: 0) {
         MenuBarTextItem(

@@ -51,3 +51,15 @@ extension EnvironmentValues {
     return QuitAppAction()
   }
 }
+
+private struct FeedDataKey: EnvironmentKey {
+  static let defaultValue = FeedDataModel(groups: [])
+}
+
+extension EnvironmentValues {
+  var feedData: FeedDataModel
+  {
+    get { self[FeedDataKey.self] }
+    set { self[FeedDataKey.self] = newValue }
+  }
+}

@@ -17,8 +17,7 @@ private struct MenuBarItemButtonStyle: ButtonStyle {
 }
 
 struct MenuBarFeedItem: View {
-  var title: any StringProtocol
-  var url: URL
+  var feed: FeedModel
 
   @Environment(\.closeMenuBar) private var closeMenuBar
 
@@ -30,8 +29,8 @@ struct MenuBarFeedItem: View {
       showFeedItems = true
     }) {
       HStack(alignment: .center) {
-        Favicon(url: url).frame(width: 24, height: 24)
-        Text(title).frame(maxWidth: .infinity, alignment: .leading)
+        Favicon(url: feed.url).frame(width: 24, height: 24)
+        Text(feed.name).frame(maxWidth: .infinity, alignment: .leading)
           .padding(
             EdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
           ).foregroundColor(.primary)
@@ -47,37 +46,20 @@ struct MenuBarFeedItem: View {
       self.isHovering = flag
     }).popover(isPresented: $showFeedItems, arrowEdge: .trailing) {
       VStack(alignment: .leading, spacing: 0) {
-        MenuBarTextItem(
-          action: {
-            showFeedItems = false
-            closeMenuBar()
-            NSWorkspace.shared.open(URL(string: "https://example.com")!)
-          },
-          title: "Feed title",
-          subtitle: "12h ago",
-          systemName: "rectangle.portrait.and.arrow.right"
-        )
-        MenuBarTextItem(
-          action: {
-            showFeedItems = false
-            closeMenuBar()
-            NSWorkspace.shared.open(URL(string: "https://example.com")!)
-          },
-          title: "Feed title",
-          subtitle: "12h ago",
-          systemName: "rectangle.portrait.and.arrow.right"
-        )
-
-        MenuBarTextItem(
-          action: {
-            showFeedItems = false
-            closeMenuBar()
-            NSWorkspace.shared.open(URL(string: "https://example.com")!)
-          },
-          title: "Feed title",
-          subtitle: "12h ago",
-          systemName: "rectangle.portrait.and.arrow.right"
-        )
+        ForEach(feed.items, id: \.id) { item in
+          MenuBarTextItem(
+            action: {
+              showFeedItems = false
+              closeMenuBar()
+              if item.url != nil {
+                NSWorkspace.shared.open(item.url!)
+              }
+            },
+            title: item.title,
+            subtitle: item.date.formattedDistance(to: Date()),
+            systemName: "rectangle.portrait.and.arrow.right"
+          )
+        }
         Spacer()
         MenuBarTextItem(
           action: {
