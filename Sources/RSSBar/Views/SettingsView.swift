@@ -219,10 +219,16 @@ struct FeedGroupView: View {
   @Environment(\.modelContext) var modelContext
 
   var body: some View {
-    Section(group.name) {
+    Section(group.name == "" ? "Unnamed" : group.name) {
       List {
         ForEach(group.feeds, id: \.id) { feed in
           FeedItemView(feed: feed)
+        }
+        if group.feeds.count == 0 {
+          Text("No feeds. Click the context menu below to add one.")
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(10).font(.callout)
+            .foregroundStyle(.secondary).frame(width: .infinity)
         }
       }
 
@@ -341,6 +347,13 @@ struct FeedsSettingsView: View {
       ForEach(groups, id: \.id) { group in
         FeedGroupView(group: group)
       }
+      if groups.count == 0 {
+        Text("No feed groups. Click the plus button above to add one.")
+          .frame(maxWidth: .infinity, alignment: .center)
+          .padding(10).font(.callout)
+          .foregroundStyle(.secondary).frame(width: .infinity)
+      }
+
     }.formStyle(.grouped)
   }
 }
