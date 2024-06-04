@@ -18,7 +18,10 @@ struct Favicon: View {
       }
     }.task {
       if let url {
-        let origin = url.host()!
+        guard let origin = url.host() else {
+          print("Invalid host \(url.absoluteString)")
+          return
+        }
         do {
           if let data = DiskCache.shared.urlIfExists(forKey: origin) {
             favicon = data
@@ -29,11 +32,13 @@ struct Favicon: View {
             if let url = urls.first {
 
               favicon = try await FaviconDownloader.download(contentsOf: url)
-              do {
-                try DiskCache.shared.insert(
-                  Data(contentsOf: favicon!), forKey: origin)
-              } catch {
-                print("Failed to cache content \(error)")
+              if favicon != nil {
+                do {
+                  try DiskCache.shared.insert(
+                    Data(contentsOf: favicon!), forKey: origin)
+                } catch {
+                  print("Failed to cache content \(error)")
+                }
               }
             } else {
               // TODO: Log
