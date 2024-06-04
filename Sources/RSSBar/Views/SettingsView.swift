@@ -156,9 +156,6 @@ struct AddFeedAlertView: View {
   var body: some View {
     TextField("Name", text: $newName, prompt: Text("Name"))
     TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
-    // NOTE: Don't ask why, but this button has to be here. If it's not,
-    // there'll be a default OK button anyway that works, but without it
-    // the TextField is not shown
     Button("OK") {
       withAnimation {
         group.feeds.append(Feed(name: newName, url: URL(string: newURL)!))
@@ -219,7 +216,7 @@ struct FeedGroupView: View {
   @Environment(\.modelContext) var modelContext
 
   var body: some View {
-    Section(group.name == "" ? "Unnamed" : group.name) {
+    Section {
       List {
         ForEach(group.feeds, id: \.id) { feed in
           FeedItemView(feed: feed)
@@ -272,14 +269,15 @@ struct FeedGroupView: View {
           "Edit group name", isPresented: $presentEditGroupNamePrompt
         ) {
           TextField("Name", text: $newGroupName, prompt: Text(group.name))
-          // NOTE: Don't ask why, but this button has to be here. If it's not,
-          // there'll be a default OK button anyway that works, but without it
-          // the TextField is not shown
           Button("OK") {
             withAnimation {
               group.name = newGroupName
               try? modelContext.save()
+
             }
+          }.keyboardShortcut(.defaultAction)
+          Button("Cancel", role: .cancel) {
+            // Do nothing
           }
         }.dialogIcon(Image(systemName: "textformat.abc"))
         .alert("Test", isPresented: $shouldPresentSheet) {
@@ -331,12 +329,14 @@ struct FeedsSettingsView: View {
           }
           .fixedSize().alert("Add new group", isPresented: $presentPrompt) {
             TextField("Name", text: $newName, prompt: Text("Group name"))
-            // NOTE: Don't ask why, but this button has to be here. If it's not,
-            // there'll be a default OK button anyway that works, but without it
-            // the TextField is not shown
             Button("OK") {
               modelContext.insert(FeedGroup(name: newName))
+              try? modelContext.save()
+            }.keyboardShortcut(.defaultAction)
+            Button("Cancel", role: .cancel) {
+              // Do nothing
             }
+
           } message: {
             Text("Select a name for the new group.")
           }.dialogIcon(Image(systemName: "textformat.abc"))
