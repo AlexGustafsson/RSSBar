@@ -216,7 +216,7 @@ struct FeedGroupView: View {
   @Environment(\.modelContext) var modelContext
 
   var body: some View {
-    Section {
+    Section(group.name) {
       List {
         ForEach(group.feeds, id: \.id) { feed in
           FeedItemView(feed: feed)
