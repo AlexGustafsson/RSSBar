@@ -144,7 +144,7 @@ struct FeedItemDetailsView: View {
   }
 }
 
-struct AddFeedView: View {
+struct AddFeedAlertView: View {
   @State var group: FeedGroup
 
   @Environment(\.modelContext) var modelContext
@@ -154,14 +154,19 @@ struct AddFeedView: View {
   @State private var newURL: String = ""
 
   var body: some View {
-    TextField("Feed name", text: $newName, prompt: Text("Feed name"))
+    TextField("Name", text: $newName, prompt: Text("Name"))
     TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
-    Button("Add") {
+    // NOTE: Don't ask why, but this button has to be here. If it's not,
+    // there'll be a default OK button anyway that works, but without it
+    // the TextField is not shown
+    Button("OK") {
       withAnimation {
         group.feeds.append(Feed(name: newName, url: URL(string: newURL)!))
         try? modelContext.save()
-        dismiss()
       }
+    }.keyboardShortcut(.defaultAction)
+    Button("Cancel", role: .cancel) {
+      // Do nothing
     }
   }
 }
@@ -271,11 +276,9 @@ struct FeedGroupView: View {
             }
           }
         }.dialogIcon(Image(systemName: "textformat.abc"))
-        .sheet(isPresented: $shouldPresentSheet) {
-          // Do noting
-        } content: {
-          AddFeedView(group: group)
-        }
+        .alert("Test", isPresented: $shouldPresentSheet) {
+          AddFeedAlertView(group: group)
+        }.dialogIcon(Image(systemName: "plus.circle.fill"))
       }
     }
 
