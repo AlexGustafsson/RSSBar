@@ -8,7 +8,7 @@ struct MenuBarView: View {
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
 
-  @Query(sort: \FeedGroup.index) var groups: [FeedGroup]
+  @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
 
   @State private var hoveredListItem: Int?
 

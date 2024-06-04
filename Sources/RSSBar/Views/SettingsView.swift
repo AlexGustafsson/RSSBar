@@ -108,8 +108,16 @@ struct FeedItemDetailsView: View {
         ) {
           Button("Delete feed", role: .destructive) {
             withAnimation {
-              modelContext.delete(feed)
+              let group = feed.group!
+              var s = group.feeds.sorted(by: { $0.order < $1.order })
+              s.remove(at: feed.order)
+              for (index, item) in s.enumerated() {
+                item.order = index
+              }
+              group.feeds = s
+
               try? modelContext.save()
+
               dismiss()
             }
           }.keyboardShortcut(.delete)
@@ -158,7 +166,13 @@ struct AddFeedAlertView: View {
     TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
     Button("OK") {
       withAnimation {
-        group.feeds.append(Feed(name: newName, url: URL(string: newURL)!))
+        let feed = Feed(name: newName, url: URL(string: newURL)!)
+        var s = group.feeds.sorted(by: { $0.order < $1.order })
+        s.append(feed)
+        for (index, item) in s.enumerated() {
+          item.order = index
+        }
+        group.feeds = s
         try? modelContext.save()
       }
     }.keyboardShortcut(.defaultAction)
@@ -213,6 +227,8 @@ struct FeedGroupView: View {
 
   @State private var newGroupName: String = ""
 
+  @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
+
   @Environment(\.modelContext) var modelContext
 
   var body: some View {
@@ -220,7 +236,19 @@ struct FeedGroupView: View {
       List {
         ForEach(group.feeds, id: \.id) { feed in
           FeedItemView(feed: feed)
+        }.onMove { from, to in
+          withAnimation {
+            var s = group.feeds.sorted(by: { $0.order < $1.order })
+            s.move(fromOffsets: from, toOffset: to)
+            for (index, item) in s.enumerated() {
+              item.order = index
+            }
+            group.feeds = s
+
+            try? modelContext.save()
+          }
         }
+
         if group.feeds.count == 0 {
           Text("No feeds. Click the context menu below to add one.")
             .frame(maxWidth: .infinity, alignment: .center)
@@ -235,11 +263,30 @@ struct FeedGroupView: View {
           Button("Add feed") {
             shouldPresentSheet = true
           }
-          Button("Move up") {
-
+          if group.order > 0 {
+            Button("Move up") {
+              var s = groups.sorted(by: { $0.order < $1.order })
+              s.move(
+                fromOffsets: IndexSet(integer: group.order),
+                toOffset: group.order - 1)
+              for (index, item) in s.enumerated() {
+                item.order = index
+              }
+              try? modelContext.save()
+            }
           }
-          Button("Move down") {
+          if group.order < groups.count - 1 {
+            Button("Move down") {
+              var s = groups.sorted(by: { $0.order < $1.order })
+              s.move(
+                fromOffsets: IndexSet(integer: group.order),
+                toOffset: group.order + 2)
+              for (index, item) in s.enumerated() {
+                item.order = index
+              }
+              try? modelContext.save()
 
+            }
           }
           Button("Edit name") {
             presentEditGroupNamePrompt = true
@@ -296,7 +343,7 @@ struct FeedsSettingsView: View {
   @State var newName: String = ""
 
   @Environment(\.modelContext) var modelContext
-  @Query(sort: \FeedGroup.index) var groups: [FeedGroup]
+  @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
   @Query(sort: \Feed.name) var feeds: [Feed]
 
   // TODO: insetGrouped: https://lucajonscher.medium.com/create-an-inset-grouped-list-in-swiftui-for-macos-20c0bcfaaa7
@@ -330,7 +377,9 @@ struct FeedsSettingsView: View {
           .fixedSize().alert("Add new group", isPresented: $presentPrompt) {
             TextField("Name", text: $newName, prompt: Text("Group name"))
             Button("OK") {
-              modelContext.insert(FeedGroup(name: newName))
+              let group = FeedGroup(name: newName)
+              group.order = groups.count
+              modelContext.insert(group)
               try? modelContext.save()
             }.keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {
