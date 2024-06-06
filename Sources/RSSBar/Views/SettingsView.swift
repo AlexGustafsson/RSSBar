@@ -78,17 +78,26 @@ struct FeedItemDetailsView: View {
           }
         }
 
-        // TODO: Disabled when not editing?
         Section("Options") {
           List {
-            Picker("Update interval", selection: $newUpdateInterval) {
-              Text("Default")
-              Text("Hourly")
-              Text("Daily")
-              Text("Weekly")
-              Text("Monthly")
+            if editing {
+              Picker("Update interval", selection: $newUpdateInterval) {
+                Text("Default")
+                Text("Hourly")
+                Text("Daily")
+                Text("Weekly")
+                Text("Monthly")
+              }
+            } else {
+              LabeledContent("Update interval") {
+                Text("Default")
+              }
             }
+          }
+        }
 
+        Section("Actions") {
+          List {
             Button("Clear history", role: .destructive) {
 
             }
