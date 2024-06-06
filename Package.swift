@@ -32,7 +32,8 @@ let package = Package(
         .product(name: "SettingsAccess", package: "SettingsAccess"),
       ],
       resources: [
-        .copy("Resources/icon.png")
+        .copy("Resources/icon.png"),
+        .copy("Resources/icon.svg"),
       ],
       linkerSettings: [
         .unsafeFlags([

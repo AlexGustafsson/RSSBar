@@ -84,7 +84,15 @@ struct RSSBar: App {
       ).environment(
         \.fetchFeeds, self.fetchFeeds)
     } label: {
-      Label("RSSBar", systemImage: "star")
+      var image: NSImage = {
+        let ratio = $0.size.height / $0.size.width
+        $0.size.height = 18
+        $0.size.width = 18 / ratio
+        $0.isTemplate = true
+        return $0
+      }(Bundle.module.image(forResource: "icon.svg")!)
+
+      Image(nsImage: image)
     }.menuBarExtraStyle(.window)
 
     Window("About", id: "about") {
