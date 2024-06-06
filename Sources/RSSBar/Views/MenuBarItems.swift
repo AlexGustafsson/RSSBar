@@ -45,22 +45,24 @@ struct MenuBarFeedItem: View {
     ).onHover(perform: { flag in
       self.isHovering = flag
     }).popover(isPresented: $showFeedItems, arrowEdge: .trailing) {
-      VStack(alignment: .leading, spacing: 0) {
-        ForEach(feed.items, id: \.id) { item in
-          MenuBarTextItem(
-            action: {
-              showFeedItems = false
-              closeMenuBar()
-              if item.url != nil {
-                NSWorkspace.shared.open(item.url!)
-              }
-            },
-            title: item.title,
-            subtitle: item.date.formattedDistance(to: Date()),
-            systemName: "rectangle.portrait.and.arrow.right"
-          )
+      VStack {
+        List {
+          ForEach(feed.items, id: \.id) { item in
+            MenuBarTextItem(
+              action: {
+                showFeedItems = false
+                closeMenuBar()
+                if item.url != nil {
+                  NSWorkspace.shared.open(item.url!)
+                }
+              },
+              title: item.title,
+              subtitle: item.date.formattedDistance(to: Date()),
+              systemName: "rectangle.portrait.and.arrow.right"
+            )
+          }
         }
-        Spacer()
+        Divider()
         MenuBarTextItem(
           action: {
             // TODO
