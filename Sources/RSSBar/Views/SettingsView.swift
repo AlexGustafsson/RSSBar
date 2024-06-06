@@ -76,6 +76,12 @@ struct FeedItemDetailsView: View {
               Text(verbatim: feed.url.absoluteString)
             }
           }
+          LabeledContent("Items") {
+            Text("\(feed.items.count)")
+          }
+          LabeledContent("Unread items") {
+            Text("\(feed.unreadItemsCount)")
+          }
         }
 
         Section("Options") {
@@ -100,6 +106,42 @@ struct FeedItemDetailsView: View {
           List {
             Button("Clear history", role: .destructive) {
 
+            }
+          }
+        }
+
+        Section("Items") {
+          List {
+            ForEach(feed.items, id: \.id) { item in
+              HStack(alignment: .center) {
+                Favicon(url: item.url).frame(width: 24, height: 24)
+                VStack(alignment: .leading) {
+                  Text(item.title).foregroundColor(.primary)
+                  Text(item.date.formattedDistance(to: Date()))
+                    .foregroundColor(
+                      .primary
+                    ).font(.footnote)
+                }.frame(maxWidth: .infinity, alignment: .topLeading)
+                Button {
+                  if item.url != nil {
+                    NSWorkspace.shared.open(item.url!)
+                  }
+
+                } label: {
+                  Image(
+                    systemName: "rectangle.portrait.and.arrow.right"
+                  ).resizable().foregroundStyle(
+                    .secondary
+                  ).frame(
+                    width: 16, height: 16)
+                }.buttonStyle(PlainButtonStyle())
+              }
+            }
+            if feed.items.count == 0 {
+              Text("No items")
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(10).font(.callout)
+                .foregroundStyle(.secondary).frame(width: .infinity)
             }
           }
         }

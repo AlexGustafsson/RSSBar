@@ -64,7 +64,9 @@ enum FeedUpdateInterval: Codable {
 
   var unreadItemsCount: Int {
     items
-      .filter({ item in item.read != nil }).count
+      .filter({ item in
+        item.read == nil
+      }).count
   }
 }
 @Model class FeedItem: Identifiable {
