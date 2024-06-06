@@ -6,6 +6,7 @@ enum FaviconDownloadError: Error {
   case invalidURL
   case notFound
   case badStatus
+  case unknownContentType
 }
 
 private struct FaviconURL {
@@ -104,7 +105,11 @@ struct FaviconDownloader {
 
   public static func download(contentsOf url: URL) async throws -> URL? {
     var request = HTTPRequest(method: .get, url: url)
-    request.headerFields[.accept] = "image/svg+xml, image/png, image/x-icon"
+
+    let supportedContentTypes = ["image/svg+xml", "image/png", "image/x-icon"]
+
+    request.headerFields[.accept] = supportedContentTypes.joined(
+      separator: ", ")
     request.headerFields[.userAgent] = "RSSBar/1.0"
 
     let (responseBody, response) = try await URLSession.shared.download(
@@ -114,6 +119,31 @@ struct FaviconDownloader {
       return nil
     } else if response.status.code != 200 {
       throw FaviconDownloadError.badStatus
+    }
+
+    var contentType = response.headerFields[.contentType]
+    if let actualContentType = contentType?.cut(at: ";")?.0 {
+      contentType = String(actualContentType)
+    }
+
+    // If the server didn't respond with a content type, try to identify it from
+    // the file extension
+    if contentType == nil {
+      // TODO: Warn
+      switch url.pathExtension {
+      case "svg":
+        contentType = "image/svg+xml"
+      case "png":
+        contentType = "image/png"
+      case "ico":
+        contentType = "image/x-icon"
+      default:
+        throw FaviconDownloadError.unknownContentType
+      }
+    }
+
+    if !supportedContentTypes.contains(contentType!) {
+      throw FaviconDownloadError.unknownContentType
     }
 
     return responseBody

@@ -6,6 +6,7 @@ struct Favicon: View {
   @State private var favicon: URL?
 
   var body: some View {
+    // TODO: Always use a rounded rectangle as clipping mask
     AsyncImage(url: favicon) { image in
       image.resizable()
     } placeholder: {
