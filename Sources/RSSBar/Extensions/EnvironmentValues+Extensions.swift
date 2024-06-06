@@ -32,6 +32,12 @@ public struct QuitAppAction {
   }
 }
 
+public struct FetchFeeds {
+  public func callAsFunction() {
+    NSApplication.shared.terminate(nil)
+  }
+}
+
 extension NSStatusItem {
   /// Close a StatusItem by simulating the click of a menu item.
   public func close() {
@@ -50,4 +56,21 @@ extension EnvironmentValues {
   public var quitApp: QuitAppAction {
     return QuitAppAction()
   }
+
+  var fetchFeeds: FetchFeedsAction? {
+    get { self[FetchFeedsActionKey.self] }
+    set { self[FetchFeedsActionKey.self] = newValue }
+  }
+}
+
+struct FetchFeedsAction {
+  typealias Action = (Bool) async -> Void
+  let action: Action
+  func callAsFunction(ignoreSchedule: Bool) async {
+    await action(ignoreSchedule)
+  }
+}
+
+private struct FetchFeedsActionKey: EnvironmentKey {
+  static var defaultValue: FetchFeedsAction? = nil
 }

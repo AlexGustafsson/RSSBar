@@ -26,6 +26,7 @@ let package = Package(
     .executableTarget(
       name: "RSSBar",
       dependencies: [
+        "RSSKit",
         .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
         .product(name: "SettingsAccess", package: "SettingsAccess"),

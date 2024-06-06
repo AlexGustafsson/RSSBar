@@ -7,6 +7,16 @@ enum FeedUpdateInterval: Codable {
   case daily
   case weekly
   case monthly
+
+  var timeInterval: TimeInterval {
+    switch self {
+    case .default: return 60 * 60
+    case .hourly: return 60 * 60
+    case .daily: return 24 * 60 * 60
+    case .weekly: return 7 * 24 * 60 * 60
+    case .monthly: return 30 * 24 * 60 * 60
+    }
+  }
 }
 
 @Model class FeedGroup: Identifiable {

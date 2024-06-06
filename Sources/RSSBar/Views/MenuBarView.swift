@@ -7,6 +7,7 @@ struct MenuBarView: View {
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
+  @Environment(\.fetchFeeds) private var fetchFeeds
 
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
 
@@ -16,7 +17,9 @@ struct MenuBarView: View {
     VStack(alignment: .leading) {
       MenuBarTextItem(
         action: {
-          // TODO
+          Task {
+            await fetchFeeds?(ignoreSchedule: true)
+          }
         },
         title: "Fetch now"
       )
