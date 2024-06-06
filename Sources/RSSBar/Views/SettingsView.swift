@@ -356,6 +356,7 @@ struct FeedGroupView: View {
           Button("Delete group", role: .destructive) {
             withAnimation {
               modelContext.delete(group)
+              try? modelContext.save()
             }
           }.keyboardShortcut(.delete)
         } message: {
