@@ -25,7 +25,8 @@ public struct RSSFeed: Equatable {
 
   public init(data: Data, contentType: String) throws {
     switch contentType {
-    case "application/xml", "application/rss+xml", "application/atom+xml":
+    case "text/xml", "application/xml", "application/rss+xml",
+      "application/atom+xml":
       self = try parseXML(data)
     case "application/feed+json":
       self = try parseJSON(data)
@@ -37,13 +38,16 @@ public struct RSSFeed: Equatable {
   public init(download url: URL) async throws {
     var request = HTTPRequest(method: .get, url: url)
     request.headerFields[.accept] =
-      "application/atom+xml,application/rss+xml,application/feed+json"
+      "application/atom+xml,application/rss+xml,application/feed+json,text/xml"
     request.headerFields[.userAgent] = "RSSBar/1.0"
 
     let (responseBody, response) = try await URLSession.shared.download(
       for: request)
 
     var contentType = response.headerFields[.contentType]
+    if let actualContentType = contentType?.cut(at: ";")?.0 {
+      contentType = String(actualContentType)
+    }
 
     // If the server didn't respond with a content type, try to identify it from
     // the file extension
@@ -57,7 +61,7 @@ public struct RSSFeed: Equatable {
       case "json":
         contentType = "application/json"
       case "xml":
-        contentType = "application/xml"
+        contentType = "text/xml"
       default:
         throw RSSError.unknownContentType
       }

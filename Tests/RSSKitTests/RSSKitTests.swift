@@ -221,6 +221,80 @@ final class RSSTests: XCTestCase {
     XCTAssertNoDifference(expected, actual)
   }
 
+  func testParseRSS2() throws {
+    // SEE: https://feeds.arstechnica.com/arstechnica/gadgets
+    let input = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"
+        xmlns:content="http://purl.org/rss/1.0/modules/content/"
+        xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:atom="http://www.w3.org/2005/Atom"
+        xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+        xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+      >
+        <channel>
+          <title>Title</title>
+          <atom:link href="https://example.com/feed" rel="self" type="application/rss+xml" />
+          <link>https://example.com</link>
+          <description>Description.</description>
+          <lastBuildDate>Wed, 05 Jun 2024 20:21:37 +0000</lastBuildDate>
+          <language>en-US</language>
+          <sy:updatePeriod>hourly </sy:updatePeriod>
+          <sy:updateFrequency>1</sy:updateFrequency>
+          <generator>https://example.com</generator>
+
+          <image>
+            <url>https://example.com/image.png</url>
+            <title> Title</title>
+            <link>https://example.com</link>
+            <width>32</width>
+            <height>32</height>
+          </image>
+          <item>
+            <title>Title</title>
+            <link>https://example.com</link>
+            <comments>https://example.com/#comments</comments>
+            <dc:creator><![CDATA[Scharon Harding]]></dc:creator>
+            <pubDate>Wed, 05 Jun 2024 20:09:05 +0000</pubDate>
+            <category><![CDATA[Tech]]></category>
+            <guid isPermaLink="false">https://example.com/item</guid>
+            <description><![CDATA[Description.]]></description>
+            <content:encoded><![CDATA[<p>Content</p>]]></content:encoded>
+            <wfw:commentRss>https://example.com/comments</wfw:commentRss>
+            <slash:comments>122</slash:comments>
+          </item>
+        </channel>
+      </rss>
+      """
+
+    let expected = RSSFeed(
+      title: "Title",
+      updated: Date(fromRFC2822: "Wed, 05 Jun 2024 20:21:37 +0000"),
+      entries: [
+        RSSFeedEntry(
+          title:
+            "Title",
+          links: [
+            URL(
+              string:
+                "https://example.com"
+            )!
+          ],
+          summary:
+            "Description.",
+          id:
+            "https://example.com/item",
+          updated: Date(fromRFC2822: "Wed, 05 Jun 2024 20:09:05 +0000")
+        )
+      ]
+    )
+
+    let actual = try RSSFeed(
+      data: Data(input.utf8), contentType: "application/rss+xml")
+    XCTAssertNoDifference(expected, actual)
+  }
+
   func testParseJSONFeed() throws {
     let input = """
       {

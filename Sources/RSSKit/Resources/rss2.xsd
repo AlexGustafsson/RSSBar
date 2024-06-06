@@ -385,6 +385,7 @@
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:any namespace="##other" processContents="lax" />
 		</xs:choice>
 	</xs:complexType>
 
