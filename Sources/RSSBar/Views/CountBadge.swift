@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CountBadge: View {
-  @Binding var value: Int
+  var value: Int
 
   private let size = 16.0
 

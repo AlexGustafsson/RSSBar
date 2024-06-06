@@ -36,7 +36,7 @@ struct MenuBarFeedItem: View {
           ).foregroundColor(.primary)
 
         CountBadge(
-          value: .constant(12)
+          value: feed.items.count
         )
       }
     }
