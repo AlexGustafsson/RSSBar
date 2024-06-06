@@ -17,7 +17,6 @@ struct MenuBarView: View {
       MenuBarTextItem(
         action: {
           // TODO
-          closeMenuBar()
         },
         title: "Fetch now"
       )
