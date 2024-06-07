@@ -21,7 +21,7 @@ extension UUID {
     // variant 64-66 (10)
     digest[8] = 0b10 << 6 | digest[8] & 0x3F
 
-    var hex = digest.map({ String(format: "%02X", $0) }).joined()
+    var hex = digest.map({ String(format: "%02x", $0) }).joined()
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 8))
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 13))
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 18))
