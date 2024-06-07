@@ -82,21 +82,22 @@ enum FeedUpdateInterval: Codable {
 @Model class FeedItem: Identifiable {
   @Attribute(.unique) var id: String
   var title: String
-  var date: Date
+  var date: Date?
   var read: Date?
   var url: URL?
   var feed: Feed?
 
-  init(id: String, title: String, date: Date) {
+  init(id: String, title: String) {
     self.id = id
     self.title = title
     self.date = date
   }
 
   convenience init(
-    id: String, title: String, date: Date, read: Date?, url: URL?
+    id: String, title: String, date: Date?, read: Date?, url: URL?
   ) {
-    self.init(id: id, title: title, date: date)
+    self.init(id: id, title: title)
+    self.date = date
     self.read = read
     self.url = url
   }

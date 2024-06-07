@@ -48,7 +48,8 @@ struct RSSBar: App {
                     let url = item.links.first
                     let newItem = FeedItem(
                       id: item.id,
-                      title: item.title ?? "Item", date: Date(), read: nil,
+                      title: item.title ?? "Item", date: item.updated,
+                      read: nil,
                       url: url)
                     newItem.feed = feed
                     modelContext.insert(newItem)

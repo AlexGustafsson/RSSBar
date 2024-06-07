@@ -57,7 +57,7 @@ struct MenuBarFeedItem: View {
                 }
               },
               title: item.title,
-              subtitle: item.date.formattedDistance(to: Date()),
+              subtitle: item.date?.formattedDistance(to: Date()) ?? "",
               systemName: "rectangle.portrait.and.arrow.right"
             )
           }
