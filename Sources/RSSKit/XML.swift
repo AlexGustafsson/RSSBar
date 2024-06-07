@@ -1,6 +1,6 @@
 import Foundation
 
-func parseXML(_ data: Data) throws -> RSSFeed {
+func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
   let atomXSDPath = Bundle.module.url(
     forResource: "atom", withExtension: "xsd")!
   let rss2XSDPath = Bundle.module.url(
@@ -34,18 +34,18 @@ func parseXML(_ data: Data) throws -> RSSFeed {
   if rootElement.uri == "http://www.w3.org/2005/Atom"
     && rootElement.name == "feed"
   {
-    return try parseAtomDocument(x)
+    return try parseAtomDocument(x, url: url)
   } else if rootElement.name == "rss"
     && rootElement.attribute(forName: "version")?.stringValue == "2.0"
   {
-    return try parseRSS2Document(x)
+    return try parseRSS2Document(x, url: url)
   } else {
     throw RSSError.invalidRootElementType
   }
 }
 
-func parseAtomDocument(_ document: XMLDocument) throws -> RSSFeed {
-  var feed = RSSFeed(entries: [])
+func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
+  var feed = RSSFeed(url: url, entries: [])
 
   if let title = try document.nodes(forXPath: "/feed/title").first {
     feed.title = title.stringValue!
@@ -58,38 +58,25 @@ func parseAtomDocument(_ document: XMLDocument) throws -> RSSFeed {
     feed.updated = Date(fromRFC3339: lastBuildDate.stringValue!)
   }
 
-  for item in try document.nodes(forXPath: "/feed/entry") {
-    var entry = RSSFeedEntry(links: [])
-
-    if let title = try item.nodes(forXPath: "./title").first {
-      entry.title = title.stringValue!
-    }
-
-    let links = try item.nodes(forXPath: "./link/@href")
-    entry.links = links.map {
+  for (i, item) in try document.nodes(forXPath: "/feed/entry").enumerated() {
+    let title = try item.nodes(forXPath: "./title").first?.stringValue
+    let links = try item.nodes(forXPath: "./link/@href").map {
       URL(string: $0.stringValue!)!
     }
+    let summary = try item.nodes(forXPath: "./summary").first?.stringValue
+    let updated = try item.nodes(forXPath: "./updated").first?.stringValue
 
-    if let summary = try item.nodes(
-      forXPath: "./summary"
-    ).first {
-      entry.summary = summary
-        .stringValue!
-    }
+    let id =
+      try item.nodes(forXPath: "./id").first?.stringValue
+      ?? UUID.v8(
+        withHash:
+          "\(url)\(title ?? links.first?.absoluteString ?? updated ?? String(i))"
+      )
 
-    if let updated = try item.nodes(forXPath: "./updated").first {
-      entry.updated = Date(fromRFC3339: updated.stringValue!)
-    }
-
-    if let id = try item.nodes(forXPath: "./id").first {
-      entry.id = id.stringValue!
-    }
-
-    if let content = try item.nodes(forXPath: "./content").first {
-      entry.contentType = try content.nodes(forXPath: "./@type")
-        .first?.stringValue!
-      entry.content = content.stringValue
-    }
+    var entry = RSSFeedEntry(id: id, links: links)
+    entry.title = title
+    entry.summary = summary
+    entry.updated = updated == nil ? nil : Date(fromRFC3339: updated!)
 
     feed.entries.append(entry)
   }
@@ -97,8 +84,8 @@ func parseAtomDocument(_ document: XMLDocument) throws -> RSSFeed {
   return feed
 }
 
-func parseRSS2Document(_ document: XMLDocument) throws -> RSSFeed {
-  var feed = RSSFeed(entries: [])
+func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
+  var feed = RSSFeed(url: url, entries: [])
 
   if let title = try document.nodes(forXPath: "/rss/channel/title").first {
     feed.title = title.stringValue!
@@ -112,31 +99,26 @@ func parseRSS2Document(_ document: XMLDocument) throws -> RSSFeed {
     feed.updated = Date(fromRFC2822: lastBuildDate.stringValue!)
   }
 
-  for item in try document.nodes(forXPath: "/rss/channel/item") {
-    var entry = RSSFeedEntry(links: [])
+  for (i, item) in try document.nodes(forXPath: "/rss/channel/item")
+    .enumerated()
+  {
+    let guid = try item.nodes(forXPath: "./guid").first?.stringValue
+    let title = try item.nodes(forXPath: "./title").first?.stringValue
+    let link = try item.nodes(forXPath: "./link").first?.stringValue
+    let description = try item.nodes(forXPath: "./description").first?
+      .stringValue
+    let pubDate = try item.nodes(forXPath: "./pubDate").first?.stringValue
 
-    if let title = try item.nodes(forXPath: "./title").first {
-      entry.title = title.stringValue!
-    }
-
-    if let link = try item.nodes(forXPath: "./link").first {
-      entry.links = [URL(string: link.stringValue!)!]
-    }
-
-    if let description = try item.nodes(
-      forXPath: "./description"
-    ).first {
-      entry.summary = description.stringValue!
-    }
-
-    // TODO: Use last build date, fall back to pub date
-    if let pubDate = try item.nodes(forXPath: "./pubDate").first {
-      entry.updated = Date(fromRFC2822: pubDate.stringValue!)
-    }
-
-    if let guid = try item.nodes(forXPath: "./guid").first {
-      entry.id = guid.stringValue!
-    }
+    let id =
+      guid
+      ?? UUID.v8(
+        withHash:
+          "\(url)\(link ?? title ?? pubDate ?? description ?? String(i))")
+    var entry = RSSFeedEntry(id: id, links: [])
+    entry.title = title
+    entry.links = link == nil ? [] : [URL(string: link!)!]
+    entry.summary = description
+    entry.updated = pubDate == nil ? nil : Date(fromRFC2822: pubDate!)
 
     feed.entries.append(entry)
   }

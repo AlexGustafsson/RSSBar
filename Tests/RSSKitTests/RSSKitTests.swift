@@ -56,24 +56,24 @@ final class RSSTests: XCTestCase {
       """
 
     let expected = RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       title: "dive into mark",
       updated: Date(fromRFC3339: "2005-07-31T12:29:29Z"),
       entries: [
         RSSFeedEntry(
+          id: "tag:example.org,2003:3.2397",
           title: "Atom draft-07 snapshot",
           links: [
             URL(string: "http://example.org/2005/04/02/atom")!,
             URL(string: "http://example.org/audio/ph34r_my_podcast.mp3")!,
           ],
-          id: "tag:example.org,2003:3.2397",
-          updated: Date(fromRFC3339: "2005-07-31T12:29:29Z"),
-          contentType: "xhtml",
-          content: "[Update: The Atom draft is finished.]"
+          updated: Date(fromRFC3339: "2005-07-31T12:29:29Z")
         )
       ]
     )
 
     let actual = try RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       data: Data(input.utf8), contentType: "application/atom+xml")
     XCTAssertNoDifference(expected, actual)
 
@@ -137,10 +137,13 @@ final class RSSTests: XCTestCase {
       """
 
     let expected = RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       title: "NASA Space Station News",
       updated: Date(fromRFC2822: "Fri, 21 Jul 2023 09:04 EDT"),
       entries: [
         RSSFeedEntry(
+          id:
+            "http://www.nasa.gov/press-release/louisiana-students-to-hear-from-nasa-astronauts-aboard-space-station",
           title:
             "Louisiana Students to Hear from NASA Astronauts Aboard Space Station",
           links: [
@@ -151,11 +154,11 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "As part of the state's first Earth-to-space call, students from Louisiana will have an opportunity soon to hear from NASA astronauts aboard the International Space Station.",
-          id:
-            "http://www.nasa.gov/press-release/louisiana-students-to-hear-from-nasa-astronauts-aboard-space-station",
           updated: Date(fromRFC2822: "Fri, 21 Jul 2023 09:04 EDT")
         ),
         RSSFeedEntry(
+          id:
+            "http://www.nasa.gov/press-release/nasa-awards-integrated-mission-operations-contract-iii",
           links: [
             URL(
               string:
@@ -164,11 +167,11 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "NASA has selected KBR Wyle Services, LLC, of Fulton, Maryland, to provide mission and flight crew operations support for the International Space Station and future human space exploration.",
-          id:
-            "http://www.nasa.gov/press-release/nasa-awards-integrated-mission-operations-contract-iii",
           updated: Date(fromRFC2822: "Thu, 20 Jul 2023 15:05 EDT")
         ),
         RSSFeedEntry(
+          id:
+            "http://www.nasa.gov/press-release/nasa-expands-options-for-spacewalking-moonwalking-suits-services",
           title:
             "NASA Expands Options for Spacewalking, Moonwalking Suits",
           links: [
@@ -179,11 +182,11 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "NASA has awarded Axiom Space and Collins Aerospace task orders under existing contracts to advance spacewalking capabilities in low Earth orbit, as well as moonwalking services for Artemis missions.",
-          id:
-            "http://www.nasa.gov/press-release/nasa-expands-options-for-spacewalking-moonwalking-suits-services",
           updated: Date(fromRFC2822: "Mon, 10 Jul 2023 14:14 EDT")
         ),
         RSSFeedEntry(
+          id:
+            "http://www.nasa.gov/press-release/nasa-to-provide-coverage-as-dragon-departs-station-with-science",
           title:
             "NASA to Provide Coverage as Dragon Departs Station",
           links: [
@@ -194,11 +197,11 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "NASA is set to receive scientific research samples and hardware as a SpaceX Dragon cargo resupply spacecraft departs the International Space Station on Thursday, June 29.",
-          id:
-            "http://www.nasa.gov/press-release/nasa-to-provide-coverage-as-dragon-departs-station-with-science",
           updated: Date(fromRFC2822: "Tue, 20 May 2003 08:56:02 GMT")
         ),
         RSSFeedEntry(
+          id:
+            "http://liftoff.msfc.nasa.gov/2003/05/20.html#item570",
           title:
             "NASA Plans Coverage of Roscosmos Spacewalk Outside Space Station",
           links: [
@@ -209,14 +212,13 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "Compared to earlier spacecraft, the International Space Station has many luxuries, but laundry facilities are not one of them.  Instead, astronauts have other options.",
-          id:
-            "http://liftoff.msfc.nasa.gov/2003/05/20.html#item570",
           updated: Date(fromRFC2822: "Mon, 26 Jun 2023 12:45 EDT")
         ),
       ]
     )
 
     let actual = try RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       data: Data(input.utf8), contentType: "application/rss+xml")
     XCTAssertNoDifference(expected, actual)
   }
@@ -269,10 +271,13 @@ final class RSSTests: XCTestCase {
       """
 
     let expected = RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       title: "Title",
       updated: Date(fromRFC2822: "Wed, 05 Jun 2024 20:21:37 +0000"),
       entries: [
         RSSFeedEntry(
+          id:
+            "https://example.com/item",
           title:
             "Title",
           links: [
@@ -283,14 +288,13 @@ final class RSSTests: XCTestCase {
           ],
           summary:
             "Description.",
-          id:
-            "https://example.com/item",
           updated: Date(fromRFC2822: "Wed, 05 Jun 2024 20:09:05 +0000")
         )
       ]
     )
 
     let actual = try RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       data: Data(input.utf8), contentType: "application/rss+xml")
     XCTAssertNoDifference(expected, actual)
   }
@@ -318,24 +322,22 @@ final class RSSTests: XCTestCase {
       """
 
     let expected = RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       title: "My Example Feed",
       updated: nil,
       entries: [
         RSSFeedEntry(
-          links: [URL(string: "https://example.org/second-item")!],
           id: "2",
-          contentType: "text/plain",
-          content: "This is a second item."
+          links: [URL(string: "https://example.org/second-item")!]
         ),
         RSSFeedEntry(
-          links: [URL(string: "https://example.org/initial-post")!],
           id: "1",
-          contentType: "text/html",
-          content: "<p>Hello, world!</p>"
+          links: [URL(string: "https://example.org/initial-post")!]
         ),
       ])
 
     let actual = try RSSFeed(
+      url: URL(string: "https://example.com/feed")!,
       data: Data(input.utf8), contentType: "application/feed+json")
     XCTAssertNoDifference(expected, actual)
   }

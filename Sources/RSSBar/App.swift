@@ -34,12 +34,12 @@ struct RSSBar: App {
 
               if ignoreSchedule || isOutdated {
                 do {
-                  let result = try await RSSFeed(download: feed.url)
+                  let result = try await RSSFeed(contentsOf: feed.url)
                   // TODO: Keep read date etc.
                   for item in result.entries {
                     let url = item.links.first
                     let newItem = FeedItem(
-                      id: item.id ?? url?.absoluteString ?? "<todo>",
+                      id: item.id,
                       title: item.title ?? "Item", date: Date(), read: nil,
                       url: url)
                     newItem.feed = feed
