@@ -18,17 +18,38 @@ struct GeneralSettingsView: View {
 }
 
 struct AdvancedSettingsView: View {
-  @AppStorage("showPreview") private var showPreview = true
-  @AppStorage("fontSize") private var fontSize = 12.0
+  @State private var presentResetDialog = false
+
+  @Environment(\.modelContext) var modelContext
 
   var body: some View {
     Form {
-      Toggle("Show Previews", isOn: $showPreview)
-      Slider(value: $fontSize, in: 9...96) {
-        Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
+      Section("Actions") {
+        Button("Reset...") {
+          presentResetDialog = true
+        }.confirmationDialog(
+          "Are you sure you want to reset all settings and data?",
+          isPresented: $presentResetDialog
+        ) {
+          Button("Reset", role: .destructive) {
+            do {
+              // NOTE: Should coalesce delete on FeedGroup and Feed, but let's
+              // make sure all potential dangling items are deleted as well
+              try modelContext.delete(model: FeedGroup.self)
+              try modelContext.delete(model: Feed.self)
+              try modelContext.delete(model: FeedItem.self)
+              // TODO: Reset settings to default
+            } catch {
+              print("Failed to clear all Country and City data.")
+            }
+          }.keyboardShortcut(.delete)
+        } message: {
+          Text(
+            "The feed will be removed, along with the history of read entries.")
+        }.dialogIcon(Image(systemName: "arrow.clockwise.circle.fill"))
+
       }
-    }
-    .frame(width: 350, height: 100)
+    }.formStyle(.grouped)
   }
 }
 
