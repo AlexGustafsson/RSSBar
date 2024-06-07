@@ -61,7 +61,7 @@ final class RSSTests: XCTestCase {
       updated: Date(fromRFC3339: "2005-07-31T12:29:29Z"),
       entries: [
         RSSFeedEntry(
-          id: "tag:example.org,2003:3.2397",
+          id: "27437149-bf10-8c4b-ac499413821f16cf",
           title: "Atom draft-07 snapshot",
           links: [
             URL(string: "http://example.org/2005/04/02/atom")!,
@@ -143,7 +143,7 @@ final class RSSTests: XCTestCase {
       entries: [
         RSSFeedEntry(
           id:
-            "http://www.nasa.gov/press-release/louisiana-students-to-hear-from-nasa-astronauts-aboard-space-station",
+            "c779011b-4a17-89f5-8f2e0f1d2b2afad6",
           title:
             "Louisiana Students to Hear from NASA Astronauts Aboard Space Station",
           links: [
@@ -158,7 +158,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "http://www.nasa.gov/press-release/nasa-awards-integrated-mission-operations-contract-iii",
+            "c59468bd-6aa3-8d8e-b295971e1edcea33",
           links: [
             URL(
               string:
@@ -171,7 +171,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "http://www.nasa.gov/press-release/nasa-expands-options-for-spacewalking-moonwalking-suits-services",
+            "6d386b01-2212-8038-a478bba63d421ebb",
           title:
             "NASA Expands Options for Spacewalking, Moonwalking Suits",
           links: [
@@ -186,7 +186,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "http://www.nasa.gov/press-release/nasa-to-provide-coverage-as-dragon-departs-station-with-science",
+            "dc1b7752-f5e2-8683-aac118a6f7680f53",
           title:
             "NASA to Provide Coverage as Dragon Departs Station",
           links: [
@@ -201,7 +201,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "http://liftoff.msfc.nasa.gov/2003/05/20.html#item570",
+            "4bcb2598-0d04-84ea-a9e116bebfd5c827",
           title:
             "NASA Plans Coverage of Roscosmos Spacewalk Outside Space Station",
           links: [
@@ -277,7 +277,7 @@ final class RSSTests: XCTestCase {
       entries: [
         RSSFeedEntry(
           id:
-            "https://example.com/item",
+            "84904b68-0eab-8ebb-879b854d224cc39d",
           title:
             "Title",
           links: [
@@ -327,11 +327,11 @@ final class RSSTests: XCTestCase {
       updated: nil,
       entries: [
         RSSFeedEntry(
-          id: "2",
+          id: "5bc4d550-8518-899c-8923bcdc7b24c9dc",
           links: [URL(string: "https://example.org/second-item")!]
         ),
         RSSFeedEntry(
-          id: "1",
+          id: "61233751-b2a4-83d6-94fd4756621b9498",
           links: [URL(string: "https://example.org/initial-post")!]
         ),
       ])

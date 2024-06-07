@@ -67,10 +67,9 @@ func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
     let updated = try item.nodes(forXPath: "./updated").first?.stringValue
 
     let id =
-      try item.nodes(forXPath: "./id").first?.stringValue
-      ?? UUID.v8(
+      UUID.v8(
         withHash:
-          "\(url)\(title ?? links.first?.absoluteString ?? updated ?? String(i))"
+          "\(url)\((try? item.nodes(forXPath: "./id").first?.stringValue) ?? title ?? links.first?.absoluteString ?? updated ?? String(i))"
       )
 
     var entry = RSSFeedEntry(id: id, links: links)
@@ -109,11 +108,9 @@ func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
       .stringValue
     let pubDate = try item.nodes(forXPath: "./pubDate").first?.stringValue
 
-    let id =
-      guid
-      ?? UUID.v8(
-        withHash:
-          "\(url)\(link ?? title ?? pubDate ?? description ?? String(i))")
+    let id = UUID.v8(
+      withHash:
+        "\(url)\(guid ?? link ?? title ?? pubDate ?? description ?? String(i))")
     var entry = RSSFeedEntry(id: id, links: [])
     entry.title = title
     entry.links = link == nil ? [] : [URL(string: link!)!]
