@@ -133,7 +133,11 @@ struct FeedItemDetailsView: View {
 
         Section("Items") {
           List {
-            ForEach(feed.items, id: \.id) { item in
+            ForEach(
+              feed.items.sorted(by: {
+                ($0.date ?? Date()) > ($1.date ?? Date())
+              }), id: \.id
+            ) { item in
               HStack(alignment: .center) {
                 Favicon(url: item.url).frame(width: 24, height: 24)
                 VStack(alignment: .leading) {

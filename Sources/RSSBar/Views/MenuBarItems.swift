@@ -47,7 +47,11 @@ struct MenuBarFeedItem: View {
     }).popover(isPresented: $showFeedItems, arrowEdge: .trailing) {
       VStack {
         List {
-          ForEach(feed.items, id: \.id) { item in
+          ForEach(
+            feed.items.sorted(by: { ($0.date ?? Date()) > ($1.date ?? Date()) }
+            ), id: \.id
+          ) {
+            item in
             MenuBarTextItem(
               action: {
                 showFeedItems = false
