@@ -229,6 +229,7 @@ struct AddFeedAlertView: View {
 
   @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
+  @Environment(\.fetchFeeds) var fetchFeeds
 
   @State private var newName: String = ""
   @State private var newURL: String = ""
@@ -246,6 +247,9 @@ struct AddFeedAlertView: View {
         }
         group.feeds = s
         try? modelContext.save()
+        Task {
+          await fetchFeeds?(ignoreSchedule: false)
+        }
       }
     }.keyboardShortcut(.defaultAction)
     Button("Cancel", role: .cancel) {

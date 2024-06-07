@@ -80,7 +80,7 @@ enum FeedUpdateInterval: Codable {
   }
 }
 @Model class FeedItem: Identifiable {
-  var id: String
+  @Attribute(.unique) var id: String
   var title: String
   var date: Date
   var read: Date?

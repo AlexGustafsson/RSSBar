@@ -15,24 +15,32 @@ struct RSSBar: App {
     self.modelContainer = modelContainer
 
     let fetchFeeds = FetchFeedsAction(action: { ignoreSchedule in
-      let context = ModelContext(modelContainer)
+      let modelContext = ModelContext(modelContainer)
 
-      guard let feeds = try? context.fetch(FetchDescriptor<Feed>()) else {
+      guard
+        let feedIds = (try? modelContext.fetch(FetchDescriptor<Feed>()))?.map({
+          $0.persistentModelID
+        })
+      else {
         return
       }
 
-      for chunk in feeds.chunked(into: 5) {
+      for chunk in feedIds.chunked(into: 5) {
         await withTaskGroup(of: Void.self) { taskGroup in
-          for feed in chunk {
+          for feedId in chunk {
             taskGroup.addTask(operation: {
-              let context = ModelContext(modelContainer)
+              let modelContext = ModelContext(modelContainer)
+
+              let feed = modelContext.model(for: feedId) as! Feed
 
               let isOutdated =
                 feed.lastUpdated == nil
                 || feed.lastUpdated!.distance(to: Date())
                   > feed.updateInterval.timeInterval
-
               if ignoreSchedule || isOutdated {
+                print(
+                  "Updating \(feed.name)@\(feed.url.absoluteString) (ignoring schedule: \(ignoreSchedule), is outdated: \(isOutdated))"
+                )
                 do {
                   let result = try await RSSFeed(contentsOf: feed.url)
                   // TODO: Keep read date etc.
@@ -43,9 +51,11 @@ struct RSSBar: App {
                       title: item.title ?? "Item", date: Date(), read: nil,
                       url: url)
                     newItem.feed = feed
-                    context.insert(newItem)
+                    modelContext.insert(newItem)
                   }
                   feed.lastUpdated = Date()
+                  modelContext.insert(feed)
+                  try? modelContext.save()
                   print(
                     "Feed updated \(feed.name)@\(feed.url.absoluteString): \(result.entries.count)"
                   )
