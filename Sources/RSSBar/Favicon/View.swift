@@ -10,13 +10,11 @@ struct Favicon: View {
   @State private var favicon: URL?
 
   var body: some View {
-    // TODO: Always use a rounded rectangle as clipping mask
     AsyncImage(url: favicon) { image in
       image.resizable()
     } placeholder: {
       ZStack {
-        RoundedRectangle(cornerRadius: 6).fill(.gray).frame(
-          width: .infinity, height: .infinity)
+        Rectangle().fill(.gray).frame(width: .infinity, height: .infinity)
         if let url {
           Text(url.host()?.first?.description.uppercased() ?? "")
         }
@@ -53,6 +51,10 @@ struct Favicon: View {
           logger.error("Failed to fetch favicon: \(error)")
         }
       }
-    }
+    }.mask(
+      RoundedRectangle(cornerRadius: 6).frame(
+        width: .infinity, height: .infinity)
+    )
+
   }
 }
