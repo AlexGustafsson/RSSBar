@@ -95,7 +95,7 @@ struct RSSBar: App {
       ).environment(
         \.fetchFeeds, self.fetchFeeds)
     } label: {
-      var image: NSImage = {
+      let image: NSImage = {
         let ratio = $0.size.height / $0.size.width
         $0.size.height = 18
         $0.size.width = 18 / ratio
