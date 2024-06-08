@@ -37,7 +37,7 @@ struct MenuBarFeedItem: View {
           ).foregroundColor(.primary)
 
         CountBadge(
-          value: feed.items.count
+          value: feed.unreadItemsCount
         )
       }
     }
@@ -72,7 +72,12 @@ struct MenuBarFeedItem: View {
         Divider()
         MenuBarTextItem(
           action: {
-            // TODO
+            for item in feed.items {
+              if item.read == nil {
+                item.read = Date()
+              }
+            }
+            try? modelContext.save()
             showFeedItems = false
           },
           title: "Mark all as read"
