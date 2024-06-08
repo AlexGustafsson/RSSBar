@@ -1,4 +1,8 @@
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/Favicon")
 
 struct Favicon: View {
   public var url: URL?
@@ -20,7 +24,7 @@ struct Favicon: View {
     }.task {
       if let url {
         guard let origin = url.host() else {
-          print("Invalid host \(url.absoluteString)")
+          logger.error("Invalid host \(url.absoluteString, privacy: .public)")
           return
         }
         do {
@@ -29,7 +33,7 @@ struct Favicon: View {
           } else {
             let urls = try await FaviconDownloader.identifyIcons(
               from: url.absoluteString)
-            print(urls)
+            logger.debug("Identified urls: \(urls, privacy: .public)")
             if let url = urls.first {
 
               favicon = try await FaviconDownloader.download(contentsOf: url)
@@ -38,17 +42,15 @@ struct Favicon: View {
                   try DiskCache.shared.insert(
                     Data(contentsOf: favicon!), forKey: origin)
                 } catch {
-                  print("Failed to cache content \(error)")
+                  logger.error("Failed to cache content: \(error)")
                 }
               }
             } else {
-              // TODO: Log
-              print("No favicon")
+              logger.debug("No favicon found for URL")
             }
           }
         } catch {
-          // TODO: Log
-          print("Failed to fetch favicon! \(error)")
+          logger.error("Failed to fetch favicon: \(error)")
         }
       }
     }

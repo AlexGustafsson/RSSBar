@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/Settings")
 
 struct GeneralSettingsView: View {
   @AppStorage("showPreview") private var showPreview = true
@@ -40,7 +44,7 @@ struct AdvancedSettingsView: View {
               try modelContext.delete(model: FeedItem.self)
               // TODO: Reset settings to default
             } catch {
-              print("Failed to clear all Country and City data.")
+              logger.error("Failed to clear data")
             }
           }.keyboardShortcut(.delete)
         } message: {
@@ -448,7 +452,7 @@ struct FeedsSettingsView: View {
             .labelsHidden()
             .disableAutocorrection(true)
             .onSubmit {
-              print(filter)
+              // TODO
             }.focused($isFocused)
           }
 

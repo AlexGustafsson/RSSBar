@@ -9,6 +9,7 @@ build:
 .PHONY: run
 # Run the program
 run:
+	$(MAKE) logs&
 	swift run RSSBar
 
 .PHONY: lint
@@ -50,3 +51,7 @@ package: .build/AppIcon.icns
 	cp .build/release/RSSBar .build/RSSBar.app/Contents/MacOS
 	mkdir -p .build/RSSBar.app/Contents/Resources
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
+
+# Tail logs produced by RSSBar
+logs:
+	log stream --info --debug --predicate 'subsystem BEGINSWITH "se.axgn.RSSBar" || (eventMessage CONTAINS "RSSBar" && messageType IN {16, 17})'

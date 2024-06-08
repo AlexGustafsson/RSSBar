@@ -61,7 +61,6 @@ class DiskCache: Cache {
 
   func urlIfExists(forKey key: String) -> URL? {
     let url = self.url(forKey: key)
-    print(url)
     if FileManager.default.fileExists(atPath: url.path) {
       return url
     } else {

@@ -2,6 +2,10 @@ import RSSKit
 import SettingsAccess
 import SwiftData
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/App")
 
 @main
 struct RSSBar: App {
@@ -10,6 +14,8 @@ struct RSSBar: App {
   private let timer: Timer
 
   init() {
+    logger.info("Starting RSSBar")
+
     let modelContainer = try! ModelContainer(
       for: FeedGroup.self, Feed.self, FeedItem.self)
     self.modelContainer = modelContainer
@@ -38,8 +44,8 @@ struct RSSBar: App {
                 || feed.lastUpdated!.distance(to: Date())
                   > feed.updateInterval.timeInterval
               if ignoreSchedule || isOutdated {
-                print(
-                  "Updating \(feed.name)@\(feed.url.absoluteString) (ignoring schedule: \(ignoreSchedule), is outdated: \(isOutdated))"
+                logger.debug(
+                  "Updating \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public) (ignoring schedule: \(ignoreSchedule), is outdated: \(isOutdated))"
                 )
                 do {
                   let result = try await RSSFeed(contentsOf: feed.url)
@@ -57,12 +63,12 @@ struct RSSBar: App {
                   feed.lastUpdated = Date()
                   modelContext.insert(feed)
                   try? modelContext.save()
-                  print(
-                    "Feed updated \(feed.name)@\(feed.url.absoluteString): \(result.entries.count)"
+                  logger.debug(
+                    "Feed updated \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(result.entries.count)"
                   )
                 } catch {
-                  print(
-                    "Failed to update feed \(feed.name)@\(feed.url.absoluteString): \(error)"
+                  logger.debug(
+                    "Failed to update feed \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(error)"
                   )
                 }
               }
