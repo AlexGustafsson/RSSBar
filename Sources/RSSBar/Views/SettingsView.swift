@@ -126,7 +126,10 @@ struct FeedItemDetailsView: View {
         Section("Actions") {
           List {
             Button("Clear history", role: .destructive) {
-
+              for item in feed.items {
+                item.read = nil
+              }
+              try? modelContext.save()
             }
           }
         }
