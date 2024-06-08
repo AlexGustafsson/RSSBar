@@ -150,8 +150,9 @@ struct FeedItemDetailsView: View {
                 Button {
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
+                    item.read = Date()
+                    try? modelContext.save()
                   }
-
                 } label: {
                   Image(
                     systemName: "rectangle.portrait.and.arrow.right"
@@ -160,7 +161,7 @@ struct FeedItemDetailsView: View {
                   ).frame(
                     width: 16, height: 16)
                 }.buttonStyle(PlainButtonStyle())
-              }
+              }.opacity(item.read == nil ? 1.0 : 0.6)
             }
             if feed.items.count == 0 {
               Text("No items")

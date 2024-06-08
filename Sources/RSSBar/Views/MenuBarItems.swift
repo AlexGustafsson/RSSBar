@@ -20,6 +20,7 @@ struct MenuBarFeedItem: View {
   var feed: Feed
 
   @Environment(\.closeMenuBar) private var closeMenuBar
+  @Environment(\.modelContext) var modelContext
 
   @State private var isHovering = false
   @State private var showFeedItems = false
@@ -58,12 +59,14 @@ struct MenuBarFeedItem: View {
                 closeMenuBar()
                 if item.url != nil {
                   NSWorkspace.shared.open(item.url!)
+                  item.read = Date()
+                  try? modelContext.save()
                 }
               },
               title: item.title,
               subtitle: item.date?.formattedDistance(to: Date()) ?? "",
               systemName: "rectangle.portrait.and.arrow.right"
-            )
+            ).opacity(item.read == nil ? 1.0 : 0.6)
           }
         }
         Divider()
