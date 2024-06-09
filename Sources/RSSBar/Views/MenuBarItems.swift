@@ -27,7 +27,9 @@ struct MenuBarFeedItem: View {
 
   var body: some View {
     Button(action: {
-      showFeedItems = true
+      if feed.items.count > 0 {
+        showFeedItems = true
+      }
     }) {
       HStack(alignment: .center) {
         Favicon(url: feed.url).frame(width: 24, height: 24)
