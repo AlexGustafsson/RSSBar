@@ -9,7 +9,6 @@ build:
 .PHONY: run
 # Run the program
 run:
-	$(MAKE) logs&
 	swift run RSSBar
 
 .PHONY: lint
