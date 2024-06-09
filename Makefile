@@ -1,5 +1,5 @@
 .PHONY: all
-all: build package
+all: app dmg
 
 .PHONY: build
 # Build RSSBar
@@ -44,12 +44,18 @@ test:
 # Compile icons
 	iconutil --convert icns --output .build/AppIcon.icns .build/AppIcon.iconset
 
-.PHONY: package
-package: .build/AppIcon.icns
+.PHONY: app
+app: build .build/AppIcon.icns
 	mkdir -p .build/RSSBar.app/Contents/MacOS
 	cp .build/release/RSSBar .build/RSSBar.app/Contents/MacOS
 	mkdir -p .build/RSSBar.app/Contents/Resources
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
+
+.PHONY: dmg
+dmg:
+# create-dmg exits with 2 if everything worked but it wasn't code signed
+# due to no identity being defined
+	npx create-dmg --overwrite --identity="$(CODESIGN_IDENTITY)" .build/RSSBar.app .build || [[ $$? -eq 2 ]] || exit 1
 
 # Tail logs produced by RSSBar
 logs:
