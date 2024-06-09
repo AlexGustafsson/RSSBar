@@ -28,7 +28,7 @@ extension Date {
     }
 
     let days = floor(hours / 24)
-    if days < 24 {
+    if days < 365 {
       return "\(prefix)\(Int(days))d\(postfix)"
     }
 
