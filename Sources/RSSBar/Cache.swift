@@ -80,4 +80,8 @@ class DiskCache: Cache {
   func remove(forKey key: String) throws {
     try FileManager.default.removeItem(at: self.url(forKey: key))
   }
+
+  func removeAll() throws {
+    try FileManager.default.removeItem(at: self.root)
+  }
 }

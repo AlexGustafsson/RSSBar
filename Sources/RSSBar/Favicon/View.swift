@@ -19,42 +19,24 @@ struct Favicon: View {
           Text(url.host()?.first?.description.uppercased() ?? "")
         }
       }
-    }.task {
-      if let url {
-        guard let origin = url.host() else {
-          logger.error("Invalid host \(url.absoluteString, privacy: .public)")
-          return
-        }
-        do {
-          if let data = DiskCache.shared.urlIfExists(forKey: origin) {
-            favicon = data
-          } else {
-            let urls = try await FaviconDownloader.identifyIcons(
-              from: url.absoluteString)
-            logger.debug("Identified urls: \(urls, privacy: .public)")
-            if let url = urls.first {
-
-              favicon = try await FaviconDownloader.download(contentsOf: url)
-              if favicon != nil {
-                do {
-                  try DiskCache.shared.insert(
-                    Data(contentsOf: favicon!), forKey: origin)
-                } catch {
-                  logger.error("Failed to cache content: \(error)")
-                }
-              }
-            } else {
-              logger.debug("No favicon found for URL")
-            }
-          }
-        } catch {
-          logger.error("Failed to fetch favicon: \(error)")
-        }
-      }
     }.mask(
       RoundedRectangle(cornerRadius: 6).frame(
         width: .infinity, height: .infinity)
-    )
-
+    ).onAppear {
+      Task {
+        if let url {
+          do {
+            favicon = try await CachedFaviconDownloader(
+              underlyingDownloader: BasicFaviconDownloader()
+            ).downloadPreferred(from: url)
+          } catch {
+            logger.error(
+              "Failed to fetch favicon for \(url, privacy: .public): \(error)")
+          }
+        }
+      }
+    }.onDisappear {
+      // TODO: Cancel download task (decrement number of interested parties as to not stop other favicon)?
+    }
   }
 }

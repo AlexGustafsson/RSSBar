@@ -43,6 +43,7 @@ struct AdvancedSettingsView: View {
               try modelContext.delete(model: FeedGroup.self)
               try modelContext.delete(model: Feed.self)
               try modelContext.delete(model: FeedItem.self)
+              try DiskCache.shared.removeAll()
               // TODO: Reset settings to default
             } catch {
               logger.error("Failed to clear data")

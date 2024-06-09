@@ -1,6 +1,7 @@
 import Foundation
 import HTTPTypes
 import HTTPTypesFoundation
+import os
 
 enum FaviconDownloadError: Error {
   case invalidURL
@@ -15,11 +16,21 @@ private struct FaviconURL {
   var type: String?
 }
 
-struct FaviconDownloader {
-  public static func identifyIcons(from url: String) async throws -> [URL] {
+protocol FaviconDownloader {
+  func identifyIcons(from url: URL) async throws -> [URL]
+  func download(contentsOf url: URL) async throws -> URL?
+  func downloadPreferred(from url: URL) async throws -> URL?
+}
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/Favicon")
+
+struct BasicFaviconDownloader: FaviconDownloader {
+  public func identifyIcons(from url: URL) async throws -> [URL] {
     var urls: [FaviconURL] = []
 
-    guard let origin = URLComponents(string: url) else {
+    guard let origin = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    else {
       throw FaviconDownloadError.invalidURL
     }
 
@@ -100,13 +111,18 @@ struct FaviconDownloader {
       return false
     })
 
-    return urls.map { $0.url }
+    // Remove metadata and filter bogus URLs
+    return urls.map { $0.url }.filter({
+      ($0.scheme == "http" || $0.scheme == "https") && $0.host() != nil
+    })
   }
 
-  public static func download(contentsOf url: URL) async throws -> URL? {
+  public func download(contentsOf url: URL) async throws -> URL? {
     var request = HTTPRequest(method: .get, url: url)
 
-    let supportedContentTypes = ["image/svg+xml", "image/png", "image/x-icon"]
+    let supportedContentTypes = [
+      "image/svg+xml", "image/png", "image/x-icon", "image/vnd.microsoft.icon",
+    ]
 
     request.headerFields[.accept] = supportedContentTypes.joined(
       separator: ", ")
@@ -142,10 +158,106 @@ struct FaviconDownloader {
       }
     }
 
+    // Handle default / error page handling in some pages
+    if contentType == "text/xml" || contentType == "text/html" {
+      return nil
+    }
+
     if !supportedContentTypes.contains(contentType!) {
+      logger.warning(
+        "Unsupported content type for image \(url, privacy: .public)")
       throw FaviconDownloadError.unknownContentType
     }
 
     return responseBody
   }
+
+  func downloadPreferred(from url: URL) async throws -> URL? {
+    let urls = try await self.identifyIcons(from: url)
+
+    guard let url = urls.first else {
+      logger.debug("Didn't find any favicons for url: \(url, privacy: .public)")
+      return nil
+    }
+
+    return try await self.download(contentsOf: url)
+  }
 }
+
+// TODO: Pass cache
+struct CachedFaviconDownloader: FaviconDownloader {
+  private let underlyingDownloader: any FaviconDownloader
+  init(underlyingDownloader: any FaviconDownloader) {
+    self.underlyingDownloader = underlyingDownloader
+  }
+
+  func identifyIcons(from url: URL) async throws -> [URL] {
+    return try await self.underlyingDownloader.identifyIcons(from: url)
+  }
+
+  func download(contentsOf url: URL) async throws -> URL? {
+    guard let origin = url.host() else {
+      throw FaviconDownloadError.invalidURL
+    }
+
+    if let data = DiskCache.shared.urlIfExists(forKey: origin) {
+      return data
+    }
+
+    guard
+      let data = try await self.underlyingDownloader.downloadPreferred(
+        from: url)
+    else {
+      return nil
+    }
+
+    try? DiskCache.shared.insert(Data(contentsOf: data), forKey: origin)
+
+    return data
+  }
+
+  func downloadPreferred(from url: URL) async throws -> URL? {
+    guard let origin = url.host() else {
+      throw FaviconDownloadError.invalidURL
+    }
+
+    if let data = DiskCache.shared.urlIfExists(forKey: origin) {
+      return data
+    }
+
+    let urls = try await self.identifyIcons(from: url)
+    print(urls)
+
+    guard let url = urls.first else {
+      logger.debug("Didn't find any favicons for url: \(url, privacy: .public)")
+      return nil
+    }
+
+    return try await self.download(contentsOf: url)
+  }
+}
+
+// TODO:
+// @MainActor struct ChunkedFaviconDownloader: FaviconDownloader {
+//   let underlyingDownloader: any FaviconDownloader
+//   let parallelism: Int
+
+//   let ongoing: [String] = []
+
+//   init(underlyingDownloader: any FaviconDownloader, parallelism: Int = 5) {
+//     self.underlyingDownloader = underlyingDownloader
+//     self.parallelism = parallelism
+//   }
+
+//   func identifyIcons(from url: URL) async throws -> [URL] {
+//     return try await self.underlyingDownloader.identifyIcons(from: url)
+//   }
+
+//   func download(contentsOf url: URL) async throws -> URL? {
+
+//   }
+
+//   func downloadPreferred(from url: URL) async throws -> URL? {
+
+//   }
+// }

@@ -13,6 +13,9 @@ struct RSSBar: App {
   private let fetchFeeds: FetchFeedsAction
   private let timer: Timer
 
+  // TODO: May be run several times, don't use it to start fetching feeds
+  // TODO: Start task runner to load favicons on start. Then run on items and
+  // feeds once they are added.
   init() {
     logger.info("Starting RSSBar")
 
