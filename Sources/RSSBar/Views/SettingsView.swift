@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import SwiftData
 import SwiftUI
@@ -65,6 +66,8 @@ struct FeedItemDetailsView: View {
   @State var editing = false
   @State var presentDeleteAlert = false
 
+  @State private var newURLValidated = false
+
   @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
 
@@ -96,7 +99,19 @@ struct FeedItemDetailsView: View {
               TextField(
                 "Feed", text: $newURL, prompt: Text(feed.url.absoluteString)
               )
-              .labelsHidden()
+              .labelsHidden().onReceive(
+                Just(newURL)
+              ) { newURL in
+                guard let url = URL(string: newURL) else {
+                  newURLValidated = false
+                  return
+                }
+
+                let isHTTP = url.scheme?.hasPrefix("http") ?? false
+                let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+                let hasDomain = url.host() != nil
+                newURLValidated = (isHTTP || isHTTPS) && hasDomain
+              }
             } else {
               Text(verbatim: feed.url.absoluteString)
             }
@@ -230,7 +245,8 @@ struct FeedItemDetailsView: View {
           } else {
             dismiss()
           }
-        }.keyboardShortcut(.defaultAction)
+        }.keyboardShortcut(.defaultAction).disabled(
+          editing && (newURL != "" && !newURLValidated))
       }.padding(20)
     }
   }
@@ -244,28 +260,51 @@ struct AddFeedAlertView: View {
   @Environment(\.fetchFeeds) var fetchFeeds
 
   @State private var newName: String = ""
+  @State private var newNameValidated = false
   @State private var newURL: String = ""
+  @State private var newURLValidated = false
 
   var body: some View {
-    TextField("Name", text: $newName, prompt: Text("Name"))
-    TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
-    Button("OK") {
-      withAnimation {
-        let feed = Feed(name: newName, url: URL(string: newURL)!)
-        var s = group.feeds.sorted(by: { $0.order < $1.order })
-        s.append(feed)
-        for (index, item) in s.enumerated() {
-          item.order = index
-        }
-        group.feeds = s
-        try? modelContext.save()
-        Task {
-          await fetchFeeds?(ignoreSchedule: false)
-        }
+    VStack {
+      TextField("Name", text: $newName, prompt: Text("Name")).onReceive(
+        Just(newName)
+      ) { newName in
+        newNameValidated = newName != ""
       }
-    }.keyboardShortcut(.defaultAction)
-    Button("Cancel", role: .cancel) {
-      // Do nothing
+
+      TextField("Feed URL", text: $newURL, prompt: Text("Feed URL")).onReceive(
+        Just(newURL)
+      ) { newURL in
+        guard let url = URL(string: newURL) else {
+          newURLValidated = false
+          return
+        }
+
+        let isHTTP = url.scheme?.hasPrefix("http") ?? false
+        let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+        let hasDomain = url.host() != nil
+        newURLValidated = (isHTTP || isHTTPS) && hasDomain
+      }
+
+      Button("OK") {
+        withAnimation {
+          let feed = Feed(name: newName, url: URL(string: newURL)!)
+          var s = group.feeds.sorted(by: { $0.order < $1.order })
+          s.append(feed)
+          for (index, item) in s.enumerated() {
+            item.order = index
+          }
+          group.feeds = s
+          try? modelContext.save()
+          Task {
+            await fetchFeeds?(ignoreSchedule: false)
+          }
+        }
+      }.keyboardShortcut(.defaultAction).disabled(
+        !newNameValidated || !newURLValidated)
+      Button("Cancel", role: .cancel) {
+        // Do nothing
+      }
     }
   }
 }
