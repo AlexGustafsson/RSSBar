@@ -5,6 +5,8 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
     forResource: "atom", withExtension: "xsd")!
   let rss2XSDPath = Bundle.module.url(
     forResource: "rss2", withExtension: "xsd")!
+  let mrssXSDPath = Bundle.module.url(
+    forResource: "mrss", withExtension: "xsd")!
 
   let x = try XMLDocument(
     data: data, options: .nodeLoadExternalEntitiesNever
@@ -20,7 +22,9 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
   rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xsi:schemaLocation",
-      stringValue: "http://www.w3.org/2005/Atom \(atomXSDPath.path())")
+      stringValue:
+        "http://www.w3.org/2005/Atom \(atomXSDPath.path())"
+    )
       as! XMLNode)
 
   rootElement.addAttribute(
