@@ -89,7 +89,11 @@ struct FeedItemDetailsView: View {
               } else {
                 Text(feed.name).font(.headline)
               }
-              Text("Last fetched 17:25").font(.footnote)
+              Text(
+                feed.lastUpdated == nil
+                  ? "Never fetched"
+                  : "Last fetched \(feed.lastUpdated!.formattedDistance(to: Date()))"
+              ).font(.footnote)
                 .foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, alignment: .topLeading)
           }
