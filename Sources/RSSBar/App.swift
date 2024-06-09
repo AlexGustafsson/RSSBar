@@ -121,7 +121,9 @@ struct RSSBar: App {
     Settings {
       SettingsView().modelContainer(
         modelContainer
-      ).environment(\.fetchFeeds, self.fetchFeeds)
+      ).environment(\.fetchFeeds, self.fetchFeeds).onOpenURL { url in
+        print(url)
+      }
     }
   }
 }
