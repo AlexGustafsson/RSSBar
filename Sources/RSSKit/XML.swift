@@ -5,8 +5,6 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
     forResource: "atom", withExtension: "xsd")!
   let rss2XSDPath = Bundle.module.url(
     forResource: "rss2", withExtension: "xsd")!
-  let mrssXSDPath = Bundle.module.url(
-    forResource: "mrss", withExtension: "xsd")!
 
   let x = try XMLDocument(
     data: data, options: .nodeLoadExternalEntitiesNever
