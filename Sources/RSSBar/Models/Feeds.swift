@@ -25,18 +25,14 @@ enum FeedUpdateInterval: Codable {
     []
   var order: Int = 0
 
-  init(name: String) {
-    self.name = name
-  }
+  init(name: String) { self.name = name }
 
   convenience init(name: String, feeds: [Feed] = []) {
     self.init(name: name)
     self.feeds = feeds
   }
 
-  var id: String {
-    return self.name
-  }
+  var id: String { return self.name }
 }
 
 @Model class Feed: Identifiable {
@@ -57,9 +53,7 @@ enum FeedUpdateInterval: Codable {
   }
 
   convenience init(
-    name: String,
-    url: URL,
-    items: [FeedItem] = [],
+    name: String, url: URL, items: [FeedItem] = [],
     updateInterval: FeedUpdateInterval = .default
   ) {
     self.init(name: name, url: url)
@@ -68,16 +62,9 @@ enum FeedUpdateInterval: Codable {
     self.updateInterval = updateInterval
   }
 
-  var id: String {
-    return self.name
-  }
+  var id: String { return self.name }
 
-  var unreadItemsCount: Int {
-    items
-      .filter({ item in
-        item.read == nil
-      }).count
-  }
+  var unreadItemsCount: Int { items.filter({ item in item.read == nil }).count }
 }
 @Model class FeedItem: Identifiable {
   @Attribute(.unique) var id: String

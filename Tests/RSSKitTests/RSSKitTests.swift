@@ -74,7 +74,9 @@ final class RSSTests: XCTestCase {
 
     let actual = try RSSFeed(
       url: URL(string: "https://example.com/feed")!,
-      data: Data(input.utf8), contentType: "application/atom+xml")
+      data: Data(input.utf8),
+      contentType: "application/atom+xml"
+    )
     XCTAssertNoDifference(expected, actual)
 
   }
@@ -219,7 +221,9 @@ final class RSSTests: XCTestCase {
 
     let actual = try RSSFeed(
       url: URL(string: "https://example.com/feed")!,
-      data: Data(input.utf8), contentType: "application/rss+xml")
+      data: Data(input.utf8),
+      contentType: "application/rss+xml"
+    )
     XCTAssertNoDifference(expected, actual)
   }
 
@@ -295,7 +299,9 @@ final class RSSTests: XCTestCase {
 
     let actual = try RSSFeed(
       url: URL(string: "https://example.com/feed")!,
-      data: Data(input.utf8), contentType: "application/rss+xml")
+      data: Data(input.utf8),
+      contentType: "application/rss+xml"
+    )
     XCTAssertNoDifference(expected, actual)
   }
 
@@ -334,11 +340,14 @@ final class RSSTests: XCTestCase {
           id: "ac398901-680c-8d4c-9dddc5dccc5f8fc2",
           links: [URL(string: "https://example.org/initial-post")!]
         ),
-      ])
+      ]
+    )
 
     let actual = try RSSFeed(
       url: URL(string: "https://example.com/feed")!,
-      data: Data(input.utf8), contentType: "application/feed+json")
+      data: Data(input.utf8),
+      contentType: "application/feed+json"
+    )
     XCTAssertNoDifference(expected, actual)
   }
 }

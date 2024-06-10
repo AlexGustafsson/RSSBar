@@ -12,30 +12,21 @@ public struct CloseMenuBarAction {
       .compactMap { window -> NSStatusItem? in
         guard
           let statusItem = window.value(forKeyPath: "statusItem")
-            as? NSStatusItem,
-          statusItem.className == "NSStatusItem"
-        else {
-          return nil
-        }
+            as? NSStatusItem, statusItem.className == "NSStatusItem"
+        else { return nil }
         return statusItem
       }
 
-    for statusItem in statusItems {
-      statusItem.close()
-    }
+    for statusItem in statusItems { statusItem.close() }
   }
 }
 
 public struct QuitAppAction {
-  public func callAsFunction() {
-    NSApplication.shared.terminate(nil)
-  }
+  public func callAsFunction() { NSApplication.shared.terminate(nil) }
 }
 
 public struct FetchFeeds {
-  public func callAsFunction() {
-    NSApplication.shared.terminate(nil)
-  }
+  public func callAsFunction() { NSApplication.shared.terminate(nil) }
 }
 
 extension NSStatusItem {
@@ -47,15 +38,11 @@ extension NSStatusItem {
 }
 
 extension EnvironmentValues {
-  public var closeMenuBar: CloseMenuBarAction {
-    return CloseMenuBarAction()
-  }
+  public var closeMenuBar: CloseMenuBarAction { return CloseMenuBarAction() }
 }
 
 extension EnvironmentValues {
-  public var quitApp: QuitAppAction {
-    return QuitAppAction()
-  }
+  public var quitApp: QuitAppAction { return QuitAppAction() }
 
   var fetchFeeds: FetchFeedsAction? {
     get { self[FetchFeedsActionKey.self] }

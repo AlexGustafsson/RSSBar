@@ -30,32 +30,32 @@ struct AdvancedSettingsView: View {
   var body: some View {
     Form {
       Section("Actions") {
-        Button("Reset...") {
-          presentResetDialog = true
-        }.confirmationDialog(
-          "Are you sure you want to reset all settings and data?",
-          isPresented: $presentResetDialog
-        ) {
-          Button("Reset", role: .destructive) {
-            do {
-              // NOTE: Should coalesce delete on FeedGroup and Feed, but let's
-              // make sure all potential dangling items are deleted as well
-              try modelContext.delete(model: FeedGroup.self)
-              try modelContext.delete(model: Feed.self)
-              try modelContext.delete(model: FeedItem.self)
-              try DiskCache.shared.removeAll()
-              // TODO: Reset settings to default
-            } catch {
-              logger.error("Failed to clear data")
+        Button("Reset...") { presentResetDialog = true }
+          .confirmationDialog(
+            "Are you sure you want to reset all settings and data?",
+            isPresented: $presentResetDialog
+          ) {
+            Button("Reset", role: .destructive) {
+              do {
+                // NOTE: Should coalesce delete on FeedGroup and Feed, but let's
+                // make sure all potential dangling items are deleted as well
+                try modelContext.delete(model: FeedGroup.self)
+                try modelContext.delete(model: Feed.self)
+                try modelContext.delete(model: FeedItem.self)
+                try DiskCache.shared.removeAll()  // TODO: Reset settings to default
+              } catch { logger.error("Failed to clear data") }
             }
-          }.keyboardShortcut(.delete)
-        } message: {
-          Text(
-            "The feed will be removed, along with the history of read entries.")
-        }.dialogIcon(Image(systemName: "arrow.clockwise.circle.fill"))
+            .keyboardShortcut(.delete)
+          } message: {
+            Text(
+              "The feed will be removed, along with the history of read entries."
+            )
+          }
+          .dialogIcon(Image(systemName: "arrow.clockwise.circle.fill"))
 
       }
-    }.formStyle(.grouped)
+    }
+    .formStyle(.grouped)
   }
 }
 
@@ -77,16 +77,11 @@ struct FeedItemDetailsView: View {
       Form {
         Section {
           HStack {
-            Favicon(
-              url: feed.url
-            )
-            .frame(
-              width: 48, height: 48)
+            Favicon(url: feed.url).frame(width: 48, height: 48)
             VStack(alignment: .leading) {
               if editing {
                 TextField("Name", text: $newName, prompt: Text(feed.name))
-                  .textFieldStyle(.plain)
-                  .labelsHidden().font(.headline)
+                  .textFieldStyle(.plain).labelsHidden().font(.headline)
               } else {
                 Text(feed.name).font(.headline)
               }
@@ -94,9 +89,10 @@ struct FeedItemDetailsView: View {
                 feed.lastUpdated == nil
                   ? "Never fetched"
                   : "Last fetched \(feed.lastUpdated!.formattedDistance(to: Date()))"
-              ).font(.footnote)
-                .foregroundStyle(.secondary)
-            }.frame(maxWidth: .infinity, alignment: .topLeading)
+              )
+              .font(.footnote).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
           }
 
           LabeledContent("Feed") {
@@ -104,9 +100,8 @@ struct FeedItemDetailsView: View {
               TextField(
                 "Feed", text: $newURL, prompt: Text(feed.url.absoluteString)
               )
-              .labelsHidden().onReceive(
-                Just(newURL)
-              ) { newURL in
+              .labelsHidden()
+              .onReceive(Just(newURL)) { newURL in
                 guard let url = URL(string: newURL) else {
                   newURLValidated = false
                   return
@@ -121,12 +116,8 @@ struct FeedItemDetailsView: View {
               Text(verbatim: feed.url.absoluteString)
             }
           }
-          LabeledContent("Items") {
-            Text("\(feed.items.count)")
-          }
-          LabeledContent("Unread items") {
-            Text("\(feed.unreadItemsCount)")
-          }
+          LabeledContent("Items") { Text("\(feed.items.count)") }
+          LabeledContent("Unread items") { Text("\(feed.unreadItemsCount)") }
         }
 
         Section("Options") {
@@ -140,9 +131,7 @@ struct FeedItemDetailsView: View {
                 Text("Monthly")
               }
             } else {
-              LabeledContent("Update interval") {
-                Text("Default")
-              }
+              LabeledContent("Update interval") { Text("Default") }
             }
           }
         }
@@ -150,9 +139,7 @@ struct FeedItemDetailsView: View {
         Section("Actions") {
           List {
             Button("Clear history", role: .destructive) {
-              for item in feed.items {
-                item.read = nil
-              }
+              for item in feed.items { item.read = nil }
               try? modelContext.save()
             }
           }
@@ -170,10 +157,9 @@ struct FeedItemDetailsView: View {
                 VStack(alignment: .leading) {
                   Text(item.title).foregroundColor(.primary)
                   Text(item.date?.formattedDistance(to: Date()) ?? "")
-                    .foregroundColor(
-                      .primary
-                    ).font(.footnote)
-                }.frame(maxWidth: .infinity, alignment: .topLeading)
+                    .foregroundColor(.primary).font(.footnote)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
                 Button {
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
@@ -181,68 +167,64 @@ struct FeedItemDetailsView: View {
                     try? modelContext.save()
                   }
                 } label: {
-                  Image(
-                    systemName: "rectangle.portrait.and.arrow.right"
-                  ).resizable().foregroundStyle(
-                    .secondary
-                  ).frame(
-                    width: 16, height: 16)
-                }.buttonStyle(PlainButtonStyle())
-              }.opacity(item.read == nil ? 1.0 : 0.6)
+                  Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .resizable().foregroundStyle(.secondary)
+                    .frame(
+                      width: 16, height: 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+              }
+              .opacity(item.read == nil ? 1.0 : 0.6)
             }
             if feed.items.count == 0 {
-              Text("No items")
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(10).font(.callout)
-                .foregroundStyle(.secondary).frame(width: .infinity)
+              Text("No items").frame(maxWidth: .infinity, alignment: .center)
+                .padding(10).font(.callout).foregroundStyle(.secondary)
+                .frame(
+                  width: .infinity)
             }
           }
         }
-      }.padding(20).formStyle(.grouped)
+      }
+      .padding(20).formStyle(.grouped)
 
       Divider()
 
       // Footer
       HStack {
-        Button("Delete feed...") {
-          presentDeleteAlert = true
-        }.confirmationDialog(
-          "Are you sure you want to delete this feed?",
-          isPresented: $presentDeleteAlert
-        ) {
-          Button("Delete feed", role: .destructive) {
-            withAnimation {
-              let group = feed.group!
-              var s = group.feeds.sorted(by: { $0.order < $1.order })
-              s.remove(at: feed.order)
-              for (index, item) in s.enumerated() {
-                item.order = index
+        Button("Delete feed...") { presentDeleteAlert = true }
+          .confirmationDialog(
+            "Are you sure you want to delete this feed?",
+            isPresented: $presentDeleteAlert
+          ) {
+            Button("Delete feed", role: .destructive) {
+              withAnimation {
+                let group = feed.group!
+                var s = group.feeds.sorted(by: { $0.order < $1.order })
+                s.remove(at: feed.order)
+                for (index, item) in s.enumerated() { item.order = index }
+                group.feeds = s
+
+                try? modelContext.save()
+
+                dismiss()
               }
-              group.feeds = s
-
-              try? modelContext.save()
-
-              dismiss()
             }
-          }.keyboardShortcut(.delete)
-        } message: {
-          Text(
-            "The feed will be removed, along with the history of read entries.")
-        }.dialogIcon(Image(systemName: "trash.circle.fill"))
+            .keyboardShortcut(.delete)
+          } message: {
+            Text(
+              "The feed will be removed, along with the history of read entries."
+            )
+          }
+          .dialogIcon(Image(systemName: "trash.circle.fill"))
 
         Spacer()
-        Button(editing ? "Cancel" : "Edit") {
-          editing = !editing
-        }.keyboardShortcut(editing ? .cancelAction : nil)
+        Button(editing ? "Cancel" : "Edit") { editing = !editing }
+          .keyboardShortcut(editing ? .cancelAction : nil)
         Button(editing ? "Save" : "Done") {
           if editing {
             withAnimation {
-              if newName != "" {
-                feed.name = newName
-              }
-              if newURL != "" {
-                feed.url = URL(string: newURL)!
-              }
+              if newName != "" { feed.name = newName }
+              if newURL != "" { feed.url = URL(string: newURL)! }
               // TODO: Update interval
               try? modelContext.save()
             }
@@ -250,9 +232,12 @@ struct FeedItemDetailsView: View {
           } else {
             dismiss()
           }
-        }.keyboardShortcut(.defaultAction).disabled(
+        }
+        .keyboardShortcut(.defaultAction)
+        .disabled(
           editing && (newURL != "" && !newURLValidated))
-      }.padding(20)
+      }
+      .padding(20)
     }
   }
 }
@@ -271,41 +256,39 @@ struct AddFeedAlertView: View {
 
   var body: some View {
     VStack {
-      TextField("Name", text: $newName, prompt: Text("Name")).onReceive(
-        Just(newName)
-      ) { newName in
-        newNameValidated = newName != ""
-      }
+      TextField("Name", text: $newName, prompt: Text("Name"))
+        .onReceive(
+          Just(newName)
+        ) { newName in newNameValidated = newName != "" }
 
-      TextField("Feed URL", text: $newURL, prompt: Text("Feed URL")).onReceive(
-        Just(newURL)
-      ) { newURL in
-        guard let url = URL(string: newURL) else {
-          newURLValidated = false
-          return
+      TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
+        .onReceive(
+          Just(newURL)
+        ) { newURL in
+          guard let url = URL(string: newURL) else {
+            newURLValidated = false
+            return
+          }
+
+          let isHTTP = url.scheme?.hasPrefix("http") ?? false
+          let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+          let hasDomain = url.host() != nil
+          newURLValidated = (isHTTP || isHTTPS) && hasDomain
         }
-
-        let isHTTP = url.scheme?.hasPrefix("http") ?? false
-        let isHTTPS = url.scheme?.hasPrefix("https") ?? false
-        let hasDomain = url.host() != nil
-        newURLValidated = (isHTTP || isHTTPS) && hasDomain
-      }
 
       Button("OK") {
         withAnimation {
           let feed = Feed(name: newName, url: URL(string: newURL)!)
           var s = group.feeds.sorted(by: { $0.order < $1.order })
           s.append(feed)
-          for (index, item) in s.enumerated() {
-            item.order = index
-          }
+          for (index, item) in s.enumerated() { item.order = index }
           group.feeds = s
           try? modelContext.save()
-          Task {
-            await fetchFeeds?(ignoreSchedule: false)
-          }
+          Task { await fetchFeeds?(ignoreSchedule: false) }
         }
-      }.keyboardShortcut(.defaultAction).disabled(
+      }
+      .keyboardShortcut(.defaultAction)
+      .disabled(
         !newNameValidated || !newURLValidated)
       Button("Cancel", role: .cancel) {
         // Do nothing
@@ -321,32 +304,30 @@ struct FeedItemView: View {
 
   var body: some View {
     HStack {
-      Favicon(
-        url: feed.url
-      )
-      .frame(
-        width: 24, height: 24)
+      Favicon(url: feed.url).frame(width: 24, height: 24)
 
       VStack(alignment: .leading) {
         Text(feed.name)
         Text(feed.url.absoluteString).font(.footnote)
-          .foregroundStyle(.secondary)
-      }.frame(maxWidth: .infinity, alignment: .topLeading)
+          .foregroundStyle(
+            .secondary)
+      }
+      .frame(maxWidth: .infinity, alignment: .topLeading)
 
       Button {
         shouldPresentSheet.toggle()
       } label: {
-        Image(systemName: "info.circle").resizable().foregroundStyle(
-          .secondary
-        ).frame(
-          width: 16, height: 16)
-      }.buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $shouldPresentSheet) {
-          // Do noting
-        } content: {
-          FeedItemDetailsView(feed: feed)
-        }
-    }.padding(4)
+        Image(systemName: "info.circle").resizable().foregroundStyle(.secondary)
+          .frame(width: 16, height: 16)
+      }
+      .buttonStyle(PlainButtonStyle())
+      .sheet(isPresented: $shouldPresentSheet) {
+        // Do noting
+      } content: {
+        FeedItemDetailsView(feed: feed)
+      }
+    }
+    .padding(4)
   }
 }
 
@@ -366,44 +347,40 @@ struct FeedGroupView: View {
   var body: some View {
     Section(group.name) {
       List {
-        ForEach(group.feeds, id: \.id) { feed in
-          FeedItemView(feed: feed)
-        }.onMove { from, to in
-          withAnimation {
-            var s = group.feeds.sorted(by: { $0.order < $1.order })
-            s.move(fromOffsets: from, toOffset: to)
-            for (index, item) in s.enumerated() {
-              item.order = index
-            }
-            group.feeds = s
+        ForEach(group.feeds, id: \.id) { feed in FeedItemView(feed: feed) }
+          .onMove { from, to in
+            withAnimation {
+              var s = group.feeds.sorted(by: { $0.order < $1.order })
+              s.move(fromOffsets: from, toOffset: to)
+              for (index, item) in s.enumerated() { item.order = index }
+              group.feeds = s
 
-            try? modelContext.save()
+              try? modelContext.save()
+            }
           }
-        }
 
         if group.feeds.count == 0 {
           Text("No feeds. Click the context menu below to add one.")
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(10).font(.callout)
-            .foregroundStyle(.secondary).frame(width: .infinity)
+            .frame(
+              maxWidth: .infinity, alignment: .center
+            )
+            .padding(10).font(.callout).foregroundStyle(.secondary)
+            .frame(
+              width: .infinity)
         }
       }
 
       HStack {
         Spacer()
         Menu {
-          Button("Add feed") {
-            shouldPresentSheet = true
-          }
+          Button("Add feed") { shouldPresentSheet = true }
           if group.order > 0 {
             Button("Move up") {
               var s = groups.sorted(by: { $0.order < $1.order })
               s.move(
                 fromOffsets: IndexSet(integer: group.order),
                 toOffset: group.order - 1)
-              for (index, item) in s.enumerated() {
-                item.order = index
-              }
+              for (index, item) in s.enumerated() { item.order = index }
               try? modelContext.save()
             }
           }
@@ -413,19 +390,13 @@ struct FeedGroupView: View {
               s.move(
                 fromOffsets: IndexSet(integer: group.order),
                 toOffset: group.order + 2)
-              for (index, item) in s.enumerated() {
-                item.order = index
-              }
+              for (index, item) in s.enumerated() { item.order = index }
               try? modelContext.save()
 
             }
           }
-          Button("Edit name") {
-            presentEditGroupNamePrompt = true
-          }
-          Button("Delete", role: .destructive) {
-            presentDeleteAlert = true
-          }
+          Button("Edit name") { presentEditGroupNamePrompt = true }
+          Button("Delete", role: .destructive) { presentDeleteAlert = true }
         } label: {
           Image(systemName: "ellipsis")
         }
@@ -439,12 +410,14 @@ struct FeedGroupView: View {
               modelContext.delete(group)
               try? modelContext.save()
             }
-          }.keyboardShortcut(.delete)
+          }
+          .keyboardShortcut(.delete)
         } message: {
           Text(
             "The group will be removed, along with all of the feeds it contains."
           )
-        }.dialogIcon(Image(systemName: "trash.circle.fill"))
+        }
+        .dialogIcon(Image(systemName: "trash.circle.fill"))
         .alert(
           "Edit group name", isPresented: $presentEditGroupNamePrompt
         ) {
@@ -455,14 +428,18 @@ struct FeedGroupView: View {
               try? modelContext.save()
 
             }
-          }.keyboardShortcut(.defaultAction)
+          }
+          .keyboardShortcut(.defaultAction)
           Button("Cancel", role: .cancel) {
             // Do nothing
           }
-        }.dialogIcon(Image(systemName: "textformat.abc"))
-        .alert("Test", isPresented: $shouldPresentSheet) {
-          AddFeedAlertView(group: group)
-        }.dialogIcon(Image(systemName: "plus.circle.fill"))
+        }
+        .dialogIcon(Image(systemName: "textformat.abc"))
+        .alert(
+          "Test", isPresented: $shouldPresentSheet
+        ) { AddFeedAlertView(group: group) }
+        .dialogIcon(
+          Image(systemName: "plus.circle.fill"))
       }
     }
 
@@ -488,73 +465,64 @@ struct FeedsSettingsView: View {
           // SEE: https://www.fullstackstanley.com/articles/replicating-the-macos-search-textfield-in-swiftui/
           HStack {
             Image(systemName: "magnifyingglass")
-            TextField(
-              "Search",
-              text: $filter,
-              prompt: Text("Search")
-            )
-            .labelsHidden()
-            .disableAutocorrection(true)
-            .onSubmit {
-              // TODO
-            }.focused($isFocused)
+            TextField("Search", text: $filter, prompt: Text("Search"))
+              .labelsHidden().disableAutocorrection(true)
+              .onSubmit {
+                // TODO
+              }
+              .focused($isFocused)
           }
 
           Menu {
-            Button("New group") {
-              presentPrompt = true
-            }
+            Button("New group") { presentPrompt = true }
           } label: {
             Image(systemName: "plus")
           }
-          .fixedSize().alert("Add new group", isPresented: $presentPrompt) {
+          .fixedSize()
+          .alert("Add new group", isPresented: $presentPrompt) {
             TextField("Name", text: $newName, prompt: Text("Group name"))
             Button("OK") {
               let group = FeedGroup(name: newName)
               group.order = groups.count
               modelContext.insert(group)
               try? modelContext.save()
-            }.keyboardShortcut(.defaultAction)
+            }
+            .keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {
               // Do nothing
             }
 
           } message: {
             Text("Select a name for the new group.")
-          }.dialogIcon(Image(systemName: "textformat.abc"))
+          }
+          .dialogIcon(Image(systemName: "textformat.abc"))
 
         }
       }
 
-      ForEach(groups, id: \.id) { group in
-        FeedGroupView(group: group)
-      }
+      ForEach(groups, id: \.id) { group in FeedGroupView(group: group) }
       if groups.count == 0 {
         Text("No feed groups. Click the plus button above to add one.")
-          .frame(maxWidth: .infinity, alignment: .center)
-          .padding(10).font(.callout)
-          .foregroundStyle(.secondary).frame(width: .infinity)
+          .frame(
+            maxWidth: .infinity, alignment: .center
+          )
+          .padding(10).font(.callout).foregroundStyle(.secondary)
+          .frame(
+            width: .infinity)
       }
 
-    }.formStyle(.grouped)
+    }
+    .formStyle(.grouped)
   }
 }
 
 struct SettingsView: View {
-  private enum Tabs: Hashable {
-    case general, feeds, advanced
-  }
+  private enum Tabs: Hashable { case general, feeds, advanced }
   var body: some View {
     TabView {
-      GeneralSettingsView()
-        .tabItem {
-          Label("General", systemImage: "gear")
-        }
+      GeneralSettingsView().tabItem { Label("General", systemImage: "gear") }
         .tag(Tabs.general)
-      FeedsSettingsView()
-        .tabItem {
-          Label("Feeds", systemImage: "list.bullet")
-        }
+      FeedsSettingsView().tabItem { Label("Feeds", systemImage: "list.bullet") }
         .tag(Tabs.feeds)
       AdvancedSettingsView()
         .tabItem {
@@ -562,7 +530,6 @@ struct SettingsView: View {
         }
         .tag(Tabs.advanced)
     }
-    .padding(20)
-    .frame(width: 500, height: 720)
+    .padding(20).frame(width: 500, height: 720)
   }
 }

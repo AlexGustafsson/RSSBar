@@ -2,12 +2,9 @@ import Foundation
 
 func parseJSON(_ data: Data, url: URL) throws -> RSSFeed {
   guard
-    let decoded =
-      try? JSONSerialization.jsonObject(with: data, options: [])
+    let decoded = try? JSONSerialization.jsonObject(with: data, options: [])
       as? [String: Any]
-  else {
-    throw RSSError.invalidRootElementType
-  }
+  else { throw RSSError.invalidRootElementType }
 
   let version = decoded["version"] as? String
 
@@ -16,8 +13,7 @@ func parseJSON(_ data: Data, url: URL) throws -> RSSFeed {
   case "https://jsonfeed.org/version/1.1":
     // TODO: Validate towards schema?
     return try parseJSONFeedDocument(data, url: url)
-  default:
-    throw RSSError.unknownContentType
+  default: throw RSSError.unknownContentType
   }
 }
 
@@ -88,10 +84,7 @@ func parseJSONFeedDocument(_ data: Data, url: URL) throws -> RSSFeed {
   for item in jsonFeed.items {
     var entry = RSSFeedEntry(
       id: generateId(namespace: url.absoluteString, fallback: item.id),
-      title: item.title,
-      links: [],
-      summary: item.summary
-    )
+      title: item.title, links: [], summary: item.summary)
 
     if item.date_modified != nil {
       entry.updated = item.date_modified
@@ -99,9 +92,7 @@ func parseJSONFeedDocument(_ data: Data, url: URL) throws -> RSSFeed {
       entry.updated = item.date_published
     }
 
-    if item.url != nil {
-      entry.links.append(item.url!)
-    }
+    if item.url != nil { entry.links.append(item.url!) }
 
     entries.append(entry)
   }

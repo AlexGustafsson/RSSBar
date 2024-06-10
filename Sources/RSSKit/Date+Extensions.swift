@@ -20,8 +20,7 @@ extension Date {
     } else {
       formatter.dateFormat = "E, d LLL y H:m:s z"
     }
-    formatter.locale =
-      NSLocale(localeIdentifier: "en_US_POSIX") as Locale
+    formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX") as Locale
     if let date = formatter.date(from: value) {
       self.init(timeInterval: 0, since: date)
     } else {

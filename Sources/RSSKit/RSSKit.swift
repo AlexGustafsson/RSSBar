@@ -32,10 +32,8 @@ public struct RSSFeed: Equatable, Identifiable {
     case "text/xml", "application/xml", "application/rss+xml",
       "application/atom+xml":
       self = try parseXML(data, url: url)
-    case "application/feed+json":
-      self = try parseJSON(data, url: url)
-    default:
-      throw RSSError.invalidContentType
+    case "application/feed+json": self = try parseJSON(data, url: url)
+    default: throw RSSError.invalidContentType
     }
   }
 
@@ -58,16 +56,11 @@ public struct RSSFeed: Equatable, Identifiable {
     if contentType == nil {
       // TODO: Warn
       switch url.pathExtension {
-      case "rss":
-        contentType = "application/rss+xml"
-      case "atom":
-        contentType = "application/atom+xml"
-      case "json":
-        contentType = "application/json"
-      case "xml":
-        contentType = "text/xml"
-      default:
-        throw RSSError.unknownContentType
+      case "rss": contentType = "application/rss+xml"
+      case "atom": contentType = "application/atom+xml"
+      case "json": contentType = "application/json"
+      case "xml": contentType = "text/xml"
+      default: throw RSSError.unknownContentType
       }
     }
 
@@ -75,9 +68,7 @@ public struct RSSFeed: Equatable, Identifiable {
       url: url, data: Data(contentsOf: responseBody), contentType: contentType!)
   }
 
-  public var id: String {
-    return self.url.absoluteString
-  }
+  public var id: String { return self.url.absoluteString }
 }
 
 public struct RSSFeedEntry: Equatable, Identifiable {
@@ -91,9 +82,9 @@ public struct RSSFeedEntry: Equatable, Identifiable {
 /// Build a deterministic UUID. The UUID is a UUIDv8 based on the hash of the
 /// namespace and the first non-nil value. If no value exists, the fallback is
 /// used.
-func generateId(
-  namespace: String, fallback: String, _ values: String?...
-) -> UUID {
+func generateId(namespace: String, fallback: String, _ values: String?...)
+  -> UUID
+{
   let values = values.filter({ $0 != nil }) as! [String]
   return UUID.v8(withHash: namespace + "\n" + (values.first ?? fallback))
 }

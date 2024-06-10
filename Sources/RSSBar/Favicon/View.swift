@@ -15,27 +15,30 @@ struct Favicon: View {
     } placeholder: {
       ZStack {
         Rectangle().fill(.gray).frame(width: .infinity, height: .infinity)
-        if let url {
-          Text(url.host()?.first?.description.uppercased() ?? "")
-        }
+        if let url { Text(url.host()?.first?.description.uppercased() ?? "") }
       }
-    }.mask(
-      RoundedRectangle(cornerRadius: 6).frame(
-        width: .infinity, height: .infinity)
-    ).onAppear {
+    }
+    .mask(
+      RoundedRectangle(cornerRadius: 6)
+        .frame(
+          width: .infinity, height: .infinity)
+    )
+    .onAppear {
       Task {
         if let url {
           do {
             favicon = try await CachedFaviconDownloader(
               underlyingDownloader: BasicFaviconDownloader()
-            ).downloadPreferred(from: url)
+            )
+            .downloadPreferred(from: url)
           } catch {
             logger.error(
               "Failed to fetch favicon for \(url, privacy: .public): \(error)")
           }
         }
       }
-    }.onDisappear {
+    }
+    .onDisappear {
       // TODO: Cancel download task (decrement number of interested parties as to not stop other favicon)?
     }
   }

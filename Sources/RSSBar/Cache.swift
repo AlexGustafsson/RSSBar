@@ -25,24 +25,19 @@ class DiskCache: Cache {
       components: "cache", "v1", directoryHint: .isDirectory)
 
     try FileManager.default.createDirectory(
-      at: self.root,
-      withIntermediateDirectories: true,
-      attributes: nil)
+      at: self.root, withIntermediateDirectories: true, attributes: nil)
   }
 
   convenience init() throws {
     if let bundleID = Bundle.main.bundleIdentifier {
       let applicationSupport = try FileManager.default.url(
         for: .applicationSupportDirectory, in: .userDomainMask,
-        appropriateFor: nil, create: false
-      )
+        appropriateFor: nil, create: false)
 
       let appSupportSubDirectory = applicationSupport.appending(
         path: bundleID, directoryHint: .isDirectory)
 
-      try self.init(
-        at: appSupportSubDirectory
-      )
+      try self.init(at: appSupportSubDirectory)
     } else {
       // This case will only happen when we haven't built the app (running in,
       // development). So just store the state in the local directory
@@ -81,7 +76,5 @@ class DiskCache: Cache {
     try FileManager.default.removeItem(at: self.url(forKey: key))
   }
 
-  func removeAll() throws {
-    try FileManager.default.removeItem(at: self.root)
-  }
+  func removeAll() throws { try FileManager.default.removeItem(at: self.root) }
 }

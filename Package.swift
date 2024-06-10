@@ -4,20 +4,14 @@
 import PackageDescription
 
 let package = Package(
-  name: "RSSBar",
-  platforms: [.macOS(.v14)],
+  name: "RSSBar", platforms: [.macOS(.v14)],
   products: [
-    .executable(
-      name: "RSSBar",
-      targets: ["RSSBar"]),
-    .library(
-      name: "RSSKit",
-      targets: ["RSSKit"]),
+    .executable(name: "RSSBar", targets: ["RSSBar"]),
+    .library(name: "RSSKit", targets: ["RSSKit"]),
   ],
   dependencies: [
     .package(
-      url: "https://github.com/apple/swift-http-types.git", from: "1.1.0"
-    ),
+      url: "https://github.com/apple/swift-http-types.git", from: "1.1.0"),
     .package(
       url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
     .package(url: "https://github.com/orchetect/SettingsAccess", from: "1.4.0"),
@@ -26,40 +20,25 @@ let package = Package(
     .executableTarget(
       name: "RSSBar",
       dependencies: [
-        "RSSKit",
-        .product(name: "HTTPTypes", package: "swift-http-types"),
+        "RSSKit", .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
         .product(name: "SettingsAccess", package: "SettingsAccess"),
-      ],
-      resources: [
-        .copy("Resources/icon.png"),
-        .copy("Resources/icon.svg"),
-      ],
+      ], resources: [.copy("Resources/icon.png"), .copy("Resources/icon.svg")],
       linkerSettings: [
         .unsafeFlags([
-          "-Xlinker", "-sectcreate",
-          "-Xlinker", "__TEXT",
-          "-Xlinker", "__info_plist",
-          "-Xlinker", "Sources/RSSBar/Resources/Info.plist",
+          "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker",
+          "__info_plist", "-Xlinker", "Sources/RSSBar/Resources/Info.plist",
         ])
-      ]
-    ),
+      ]),
     .target(
       name: "RSSKit",
       dependencies: [
         .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
-      ],
-      resources: [
-        .copy("Resources/atom.xsd"),
-        .copy("Resources/rss2.xsd"),
-      ]
-    ),
+      ], resources: [.copy("Resources/atom.xsd"), .copy("Resources/rss2.xsd")]),
     .testTarget(
       name: "RSSKitTests",
       dependencies: [
-        "RSSKit",
-        .product(name: "CustomDump", package: "swift-custom-dump"),
+        "RSSKit", .product(name: "CustomDump", package: "swift-custom-dump"),
       ]),
-  ]
-)
+  ])

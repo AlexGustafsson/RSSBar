@@ -7,8 +7,7 @@ import os
 private let logger = Logger(
   subsystem: Bundle.main.bundleIdentifier!, category: "UI/App")
 
-@main
-struct RSSBar: App {
+@main struct RSSBar: App {
   private let modelContainer: ModelContainer
   private let fetchFeeds: FetchFeedsAction
   private let timer: Timer
@@ -27,12 +26,11 @@ struct RSSBar: App {
       let modelContext = ModelContext(modelContainer)
 
       guard
-        let feedIds = (try? modelContext.fetch(FetchDescriptor<Feed>()))?.map({
-          $0.persistentModelID
-        })
-      else {
-        return
-      }
+        let feedIds = (try? modelContext.fetch(FetchDescriptor<Feed>()))?
+          .map({
+            $0.persistentModelID
+          })
+      else { return }
 
       for chunk in feedIds.chunked(into: 5) {
         await withTaskGroup(of: Void.self) { taskGroup in
@@ -56,10 +54,8 @@ struct RSSBar: App {
                   for item in result.entries {
                     let url = item.links.first
                     let newItem = FeedItem(
-                      id: item.id,
-                      title: item.title ?? "Item", date: item.updated,
-                      read: nil,
-                      url: url)
+                      id: item.id, title: item.title ?? "Item",
+                      date: item.updated, read: nil, url: url)
                     newItem.feed = feed
                     modelContext.insert(newItem)
                   }
@@ -85,11 +81,7 @@ struct RSSBar: App {
     // Keep feeds up-to-date
     self.timer = Timer.scheduledTimer(
       withTimeInterval: 5 * 60, repeats: true,
-      block: { timer in
-        Task {
-          await fetchFeeds(ignoreSchedule: false)
-        }
-      })
+      block: { timer in Task { await fetchFeeds(ignoreSchedule: false) } })
     self.timer.tolerance = 60
     RunLoop.current.add(self.timer, forMode: .common)
 
@@ -99,10 +91,8 @@ struct RSSBar: App {
 
   var body: some Scene {
     MenuBarExtra {
-      MenuBarView().openSettingsAccess().modelContainer(
-        modelContainer
-      ).environment(
-        \.fetchFeeds, self.fetchFeeds)
+      MenuBarView().openSettingsAccess().modelContainer(modelContainer)
+        .environment(\.fetchFeeds, self.fetchFeeds)
     } label: {
       let image: NSImage = {
         let ratio = $0.size.height / $0.size.width
@@ -113,20 +103,18 @@ struct RSSBar: App {
       }(Bundle.module.image(forResource: "icon.svg")!)
 
       Image(nsImage: image)
-    }.menuBarExtraStyle(.window)
-
-    Window("About", id: "about") {
-      AboutView()
     }
-    .windowStyle(.hiddenTitleBar)
-    .defaultPosition(.center)
+    .menuBarExtraStyle(.window)
+
+    Window("About", id: "about") { AboutView() }.windowStyle(.hiddenTitleBar)
+      .defaultPosition(.center)
 
     Settings {
-      SettingsView().modelContainer(
-        modelContainer
-      ).environment(\.fetchFeeds, self.fetchFeeds).onOpenURL { url in
-        print(url)
-      }
+      SettingsView().modelContainer(modelContainer)
+        .environment(
+          \.fetchFeeds, self.fetchFeeds
+        )
+        .onOpenURL { url in print(url) }
     }
   }
 }

@@ -3,10 +3,7 @@ import Foundation
 
 func hash(data: Data) -> String {
   let digest = SHA256.hash(data: data)
-  let hashString =
-    digest
-    .compactMap { String(format: "%02x", $0) }
-    .joined()
+  let hashString = digest.compactMap { String(format: "%02x", $0) }.joined()
   return hashString
 }
 

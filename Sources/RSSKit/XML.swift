@@ -7,8 +7,7 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
     forResource: "rss2", withExtension: "xsd")!
 
   let document = try XMLDocument(
-    data: data, options: .nodeLoadExternalEntitiesNever
-  )
+    data: data, options: .nodeLoadExternalEntitiesNever)
 
   guard let rootElement = document.rootElement() else {
     throw RSSError.invalidRootElementType
@@ -33,9 +32,8 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
   // a given namespace
   rootElement.addAttribute(
     XMLNode.attribute(
-      withName: "xsi:noNamespaceSchemaLocation",
-      stringValue: rss2XSDPath.path())
-      as! XMLNode)
+      withName: "xsi:noNamespaceSchemaLocation", stringValue: rss2XSDPath.path()
+    ) as! XMLNode)
 
   try document.validate()
 
@@ -54,42 +52,33 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
 
 func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
   let title = try document.nodes(forXPath: "/feed/title").first?.stringValue
-  let updated = try document.nodes(forXPath: "/feed/updated").first?
-    .stringValue
+  let updated = try document.nodes(forXPath: "/feed/updated").first?.stringValue
+
+  var feed2 = RSSFeed(url: url, title: "", updated: Date(), entries: [])
 
   var feed = RSSFeed(
-    url: url,
-    title: title,
-    updated: updated == nil ? nil : Date(fromRFC3339: updated!),
-    entries: []
-  )
+    url: url, title: title,
+    updated: updated == nil ? nil : Date(fromRFC3339: updated!), entries: [])
 
   for (i, item) in try document.nodes(forXPath: "/feed/entry").enumerated() {
     let title = try item.nodes(forXPath: "./title").first?.stringValue
-    let links = try item.nodes(forXPath: "./link/@href").map {
-      URL(string: $0.stringValue!)!
-    }
+    let links = try item.nodes(forXPath: "./link/@href")
+      .map {
+        URL(string: $0.stringValue!)!
+      }
     let summary = try item.nodes(forXPath: "./summary").first?.stringValue
     let updated = try item.nodes(forXPath: "./updated").first?.stringValue
 
     // Prioritize existing ids, then likely unique values, fall back to the
     // entry's index in the feed
     let id = generateId(
-      namespace: url.absoluteString,
-      fallback: String(i),
-      try? item.nodes(forXPath: "./id").first?.stringValue,
-      title,
-      links.first?.absoluteString,
-      updated
-    )
+      namespace: url.absoluteString, fallback: String(i),
+      try? item.nodes(forXPath: "./id").first?.stringValue, title,
+      links.first?.absoluteString, updated)
 
     let entry = RSSFeedEntry(
-      id: id,
-      title: title,
-      links: links,
-      summary: summary,
-      updated: updated == nil ? nil : Date(fromRFC3339: updated!)
-    )
+      id: id, title: title, links: links, summary: summary,
+      updated: updated == nil ? nil : Date(fromRFC3339: updated!))
 
     feed.entries.append(entry)
   }
@@ -101,19 +90,17 @@ func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
 
   let title = try document.nodes(forXPath: "/rss/channel/title").first?
     .stringValue
-  let pubDate = try document.nodes(forXPath: "/rss/channel/pubDate")
-    .first?.stringValue
+  let pubDate = try document.nodes(forXPath: "/rss/channel/pubDate").first?
+    .stringValue
   let lastBuildDate = try document.nodes(forXPath: "/rss/channel/lastBuildDate")
-    .first?.stringValue
+    .first?
+    .stringValue
 
   let updated = lastBuildDate ?? pubDate
 
   var feed = RSSFeed(
-    url: url,
-    title: title,
-    updated: updated == nil ? nil : Date(fromRFC2822: updated!),
-    entries: []
-  )
+    url: url, title: title,
+    updated: updated == nil ? nil : Date(fromRFC2822: updated!), entries: [])
 
   for (i, item) in try document.nodes(forXPath: "/rss/channel/item")
     .enumerated()
@@ -128,22 +115,13 @@ func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
     // Prioritize existing ids, then likely unique values, fall back to the
     // entry's index in the feed
     let id = generateId(
-      namespace: url.absoluteString,
-      fallback: String(i),
-      guid,
-      link,
-      title,
-      pubDate,
-      description
-    )
+      namespace: url.absoluteString, fallback: String(i), guid, link, title,
+      pubDate, description)
 
     let entry = RSSFeedEntry(
-      id: id,
-      title: title,
-      links: link == nil ? [] : [URL(string: link!)!],
+      id: id, title: title, links: link == nil ? [] : [URL(string: link!)!],
       summary: description,
-      updated: pubDate == nil ? nil : Date(fromRFC2822: pubDate!)
-    )
+      updated: pubDate == nil ? nil : Date(fromRFC2822: pubDate!))
 
     feed.entries.append(entry)
   }
