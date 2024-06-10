@@ -54,8 +54,6 @@ func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
   let title = try document.nodes(forXPath: "/feed/title").first?.stringValue
   let updated = try document.nodes(forXPath: "/feed/updated").first?.stringValue
 
-  var feed2 = RSSFeed(url: url, title: "", updated: Date(), entries: [])
-
   var feed = RSSFeed(
     url: url, title: title,
     updated: updated == nil ? nil : Date(fromRFC3339: updated!), entries: [])
