@@ -44,11 +44,21 @@ struct MenuBarView: View {
           action: {
             openWindow(id: "about")
             closeMenuBar()
+
+            DispatchQueue.main.async {
+              NSApp.activate(ignoringOtherApps: true)
+              NSApp.windows.first?.makeKeyAndOrderFront(nil)
+            }
           }, title: "About")
         MenuBarTextItem(
           action: {
             try? openSettings()
             closeMenuBar()
+
+            DispatchQueue.main.async {
+              NSApp.activate(ignoringOtherApps: true)
+              NSApp.windows.first?.makeKeyAndOrderFront(nil)
+            }
           }, title: "Settings...")
         MenuBarTextItem(
           action: {

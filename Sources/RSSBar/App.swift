@@ -18,6 +18,10 @@ private let logger = Logger(
   init() {
     logger.info("Starting RSSBar")
 
+    DispatchQueue.main.async {
+      NSApp.setActivationPolicy(.accessory)
+    }
+
     let modelContainer = try! ModelContainer(
       for: FeedGroup.self, Feed.self, FeedItem.self)
     self.modelContainer = modelContainer
