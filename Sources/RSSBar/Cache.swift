@@ -29,21 +29,16 @@ class DiskCache: Cache {
   }
 
   convenience init() throws {
-    if let bundleID = Bundle.main.bundleIdentifier {
-      let applicationSupport = try FileManager.default.url(
-        for: .applicationSupportDirectory, in: .userDomainMask,
-        appropriateFor: nil, create: false)
+    // The bundle identifier is always included on build - crash if it's not
+    let bundleID = Bundle.main.bundleIdentifier!
+    let applicationSupport = try FileManager.default.url(
+      for: .applicationSupportDirectory, in: .userDomainMask,
+      appropriateFor: nil, create: false)
 
-      let appSupportSubDirectory = applicationSupport.appending(
-        path: bundleID, directoryHint: .isDirectory)
+    let appSupportSubDirectory = applicationSupport.appending(
+      path: bundleID, directoryHint: .isDirectory)
 
-      try self.init(at: appSupportSubDirectory)
-    } else {
-      // This case will only happen when we haven't built the app (running in,
-      // development). So just store the state in the local directory
-      try self.init(
-        at: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
-    }
+    try self.init(at: appSupportSubDirectory)
   }
 
   func insert(_ value: Data, forKey key: String) throws {
