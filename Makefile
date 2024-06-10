@@ -15,13 +15,13 @@ run:
 # Lint all Swift code
 # Requires swift-format: brew install swift-format
 lint:
-	swift-format lint --parallel --recursive .
+	swift-format lint --parallel --recursive Sources Package.swift
 
 .PHONY: format
 # Format all Swift code
 # Requires swift-format: brew install swift-format
 format:
-	swift-format format --in-place --recursive --parallel .
+	swift-format format --in-place --recursive --parallel Sources Package.swift
 
 .PHONY: test
 # Test all Swift code
