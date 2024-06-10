@@ -6,59 +6,63 @@ func parseXML(_ data: Data, url: URL) throws -> RSSFeed {
   let rss2XSDPath = Bundle.module.url(
     forResource: "rss2", withExtension: "xsd")!
 
-  let x = try XMLDocument(
+  let document = try XMLDocument(
     data: data, options: .nodeLoadExternalEntitiesNever
   )
 
-  let rootElement = x.rootElement()!
+  guard let rootElement = document.rootElement() else {
+    throw RSSError.invalidRootElementType
+  }
 
+  // Declare the XMLSchema instance namespace
   rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xmlns:xsi",
       stringValue: "http://www.w3.org/2001/XMLSchema-instance") as! XMLNode)
 
+  // Add the schema location of available XSDs
+  // NOTE: Here's a good place to add additional XSDs (space-separated values
+  // in stringValue)
   rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xsi:schemaLocation",
-      stringValue:
-        "http://www.w3.org/2005/Atom \(atomXSDPath.path())"
-    )
+      stringValue: "http://www.w3.org/2005/Atom \(atomXSDPath.path())")
       as! XMLNode)
 
+  // The RSS format uses no namespace, so declare the XSD as a schema without
+  // a given namespace
   rootElement.addAttribute(
     XMLNode.attribute(
       withName: "xsi:noNamespaceSchemaLocation",
       stringValue: rss2XSDPath.path())
       as! XMLNode)
 
-  try x.validate()
+  try document.validate()
 
   if rootElement.uri == "http://www.w3.org/2005/Atom"
     && rootElement.name == "feed"
   {
-    return try parseAtomDocument(x, url: url)
+    return try parseAtomDocument(document, url: url)
   } else if rootElement.name == "rss"
     && rootElement.attribute(forName: "version")?.stringValue == "2.0"
   {
-    return try parseRSS2Document(x, url: url)
+    return try parseRSS2Document(document, url: url)
   } else {
     throw RSSError.invalidRootElementType
   }
 }
 
 func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
-  var feed = RSSFeed(url: url, entries: [])
+  let title = try document.nodes(forXPath: "/feed/title").first?.stringValue
+  let updated = try document.nodes(forXPath: "/feed/updated").first?
+    .stringValue
 
-  if let title = try document.nodes(forXPath: "/feed/title").first {
-    feed.title = title.stringValue!
-  }
-
-  if let lastBuildDate = try document.nodes(
-    forXPath: "/feed/updated"
+  var feed = RSSFeed(
+    url: url,
+    title: title,
+    updated: updated == nil ? nil : Date(fromRFC3339: updated!),
+    entries: []
   )
-  .first {
-    feed.updated = Date(fromRFC3339: lastBuildDate.stringValue!)
-  }
 
   for (i, item) in try document.nodes(forXPath: "/feed/entry").enumerated() {
     let title = try item.nodes(forXPath: "./title").first?.stringValue
@@ -68,16 +72,24 @@ func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
     let summary = try item.nodes(forXPath: "./summary").first?.stringValue
     let updated = try item.nodes(forXPath: "./updated").first?.stringValue
 
-    let id =
-      UUID.v8(
-        withHash:
-          "\(url)\((try? item.nodes(forXPath: "./id").first?.stringValue) ?? title ?? links.first?.absoluteString ?? updated ?? String(i))"
-      )
+    // Prioritize existing ids, then likely unique values, fall back to the
+    // entry's index in the feed
+    let id = generateId(
+      namespace: url.absoluteString,
+      fallback: String(i),
+      try? item.nodes(forXPath: "./id").first?.stringValue,
+      title,
+      links.first?.absoluteString,
+      updated
+    )
 
-    var entry = RSSFeedEntry(id: id, links: links)
-    entry.title = title
-    entry.summary = summary
-    entry.updated = updated == nil ? nil : Date(fromRFC3339: updated!)
+    let entry = RSSFeedEntry(
+      id: id,
+      title: title,
+      links: links,
+      summary: summary,
+      updated: updated == nil ? nil : Date(fromRFC3339: updated!)
+    )
 
     feed.entries.append(entry)
   }
@@ -86,19 +98,22 @@ func parseAtomDocument(_ document: XMLDocument, url: URL) throws -> RSSFeed {
 }
 
 func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
-  var feed = RSSFeed(url: url, entries: [])
 
-  if let title = try document.nodes(forXPath: "/rss/channel/title").first {
-    feed.title = title.stringValue!
-  }
+  let title = try document.nodes(forXPath: "/rss/channel/title").first?
+    .stringValue
+  let pubDate = try document.nodes(forXPath: "/rss/channel/pubDate")
+    .first?.stringValue
+  let lastBuildDate = try document.nodes(forXPath: "/rss/channel/lastBuildDate")
+    .first?.stringValue
 
-  // TODO: Use last build date, fall back to pub date
-  if let lastBuildDate = try document.nodes(
-    forXPath: "/rss/channel/lastBuildDate"
+  let updated = lastBuildDate ?? pubDate
+
+  var feed = RSSFeed(
+    url: url,
+    title: title,
+    updated: updated == nil ? nil : Date(fromRFC2822: updated!),
+    entries: []
   )
-  .first {
-    feed.updated = Date(fromRFC2822: lastBuildDate.stringValue!)
-  }
 
   for (i, item) in try document.nodes(forXPath: "/rss/channel/item")
     .enumerated()
@@ -110,14 +125,25 @@ func parseRSS2Document(_ document: XMLDocument, url: URL) throws -> RSSFeed {
       .stringValue
     let pubDate = try item.nodes(forXPath: "./pubDate").first?.stringValue
 
-    let id = UUID.v8(
-      withHash:
-        "\(url)\(guid ?? link ?? title ?? pubDate ?? description ?? String(i))")
-    var entry = RSSFeedEntry(id: id, links: [])
-    entry.title = title
-    entry.links = link == nil ? [] : [URL(string: link!)!]
-    entry.summary = description
-    entry.updated = pubDate == nil ? nil : Date(fromRFC2822: pubDate!)
+    // Prioritize existing ids, then likely unique values, fall back to the
+    // entry's index in the feed
+    let id = generateId(
+      namespace: url.absoluteString,
+      fallback: String(i),
+      guid,
+      link,
+      title,
+      pubDate,
+      description
+    )
+
+    let entry = RSSFeedEntry(
+      id: id,
+      title: title,
+      links: link == nil ? [] : [URL(string: link!)!],
+      summary: description,
+      updated: pubDate == nil ? nil : Date(fromRFC2822: pubDate!)
+    )
 
     feed.entries.append(entry)
   }

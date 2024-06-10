@@ -87,3 +87,13 @@ public struct RSSFeedEntry: Equatable, Identifiable {
   public var summary: String?
   public var updated: Date?
 }
+
+/// Build a deterministic UUID. The UUID is a UUIDv8 based on the hash of the
+/// namespace and the first non-nil value. If no value exists, the fallback is
+/// used.
+func generateId(
+  namespace: String, fallback: String, _ values: String?...
+) -> UUID {
+  let values = values.filter({ $0 != nil }) as! [String]
+  return UUID.v8(withHash: namespace + "\n" + (values.first ?? fallback))
+}

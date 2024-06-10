@@ -87,7 +87,7 @@ func parseJSONFeedDocument(_ data: Data, url: URL) throws -> RSSFeed {
 
   for item in jsonFeed.items {
     var entry = RSSFeedEntry(
-      id: UUID.v8(withHash: "\(url)\(item.id)"),
+      id: generateId(namespace: url.absoluteString, fallback: item.id),
       title: item.title,
       links: [],
       summary: item.summary

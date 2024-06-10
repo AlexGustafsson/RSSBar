@@ -61,7 +61,7 @@ final class RSSTests: XCTestCase {
       updated: Date(fromRFC3339: "2005-07-31T12:29:29Z"),
       entries: [
         RSSFeedEntry(
-          id: "27437149-bf10-8c4b-ac499413821f16cf",
+          id: "569adbfc-4c07-8f91-a78694e35315710c",
           title: "Atom draft-07 snapshot",
           links: [
             URL(string: "http://example.org/2005/04/02/atom")!,
@@ -143,7 +143,7 @@ final class RSSTests: XCTestCase {
       entries: [
         RSSFeedEntry(
           id:
-            "c779011b-4a17-89f5-8f2e0f1d2b2afad6",
+            "b54968ee-ef24-80c8-9ead1cb362947413",
           title:
             "Louisiana Students to Hear from NASA Astronauts Aboard Space Station",
           links: [
@@ -158,7 +158,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "c59468bd-6aa3-8d8e-b295971e1edcea33",
+            "b56823b6-c564-84c7-aa1c34f3d1bb0776",
           links: [
             URL(
               string:
@@ -171,7 +171,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "6d386b01-2212-8038-a478bba63d421ebb",
+            "0627f1a8-2c68-881f-a06b549e81203731",
           title:
             "NASA Expands Options for Spacewalking, Moonwalking Suits",
           links: [
@@ -186,7 +186,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "dc1b7752-f5e2-8683-aac118a6f7680f53",
+            "548d95ed-607d-825c-bf9671e16ab6131a",
           title:
             "NASA to Provide Coverage as Dragon Departs Station",
           links: [
@@ -201,7 +201,7 @@ final class RSSTests: XCTestCase {
         ),
         RSSFeedEntry(
           id:
-            "4bcb2598-0d04-84ea-a9e116bebfd5c827",
+            "4fcaeacd-bf84-8e67-a2faafcd34660883",
           title:
             "NASA Plans Coverage of Roscosmos Spacewalk Outside Space Station",
           links: [
@@ -277,7 +277,7 @@ final class RSSTests: XCTestCase {
       entries: [
         RSSFeedEntry(
           id:
-            "84904b68-0eab-8ebb-879b854d224cc39d",
+            "a24ed3ae-1ca8-8cfe-89b1aa98ce70f29f",
           title:
             "Title",
           links: [
@@ -327,11 +327,11 @@ final class RSSTests: XCTestCase {
       updated: nil,
       entries: [
         RSSFeedEntry(
-          id: "5bc4d550-8518-899c-8923bcdc7b24c9dc",
+          id: "4ef31782-bf47-87d3-ab62f8ba795e5dae",
           links: [URL(string: "https://example.org/second-item")!]
         ),
         RSSFeedEntry(
-          id: "61233751-b2a4-83d6-94fd4756621b9498",
+          id: "ac398901-680c-8d4c-9dddc5dccc5f8fc2",
           links: [URL(string: "https://example.org/initial-post")!]
         ),
       ])
