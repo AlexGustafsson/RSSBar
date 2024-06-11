@@ -299,6 +299,7 @@ struct AddFeedAlertView: View {
 
 struct FeedItemView: View {
   @State var feed: Feed
+  @Binding var query: String
 
   @State private var shouldPresentSheet = false
 
@@ -307,10 +308,26 @@ struct FeedItemView: View {
       Favicon(url: feed.url).frame(width: 24, height: 24)
 
       VStack(alignment: .leading) {
-        Text(feed.name)
-        Text(feed.url.absoluteString).font(.footnote)
-          .foregroundStyle(
-            .secondary)
+        Text(feed.name) { string in
+          if query != "" {
+            string.foregroundColor = .secondary
+            if let range = string.range(of: query, options: .caseInsensitive) {
+              string[range].foregroundColor = .primary
+            }
+          }
+        }
+
+        Text(feed.url.absoluteString) { string in
+          if query != "" {
+            string.foregroundColor = .secondary
+            if let range = string.range(of: query, options: .caseInsensitive) {
+              string[range].foregroundColor = .primary
+            }
+          }
+        }
+        .font(.footnote)
+        .foregroundStyle(
+          .secondary)
       }
       .frame(maxWidth: .infinity, alignment: .topLeading)
 
@@ -333,6 +350,7 @@ struct FeedItemView: View {
 
 struct FeedGroupView: View {
   @State var group: FeedGroup
+  @Binding var query: String
 
   @State private var presentDeleteAlert: Bool = false
   @State private var presentEditGroupNamePrompt: Bool = false
@@ -344,20 +362,31 @@ struct FeedGroupView: View {
 
   @Environment(\.modelContext) var modelContext
 
+  var matchedFeeds: [Feed] {
+    return self.group.feeds.filter {
+      let title = $0.name.range(of: self.query, options: .caseInsensitive)
+      let url = $0.url.absoluteString.range(
+        of: query, options: .caseInsensitive)
+      return query == "" || title != nil || url != nil
+    }
+  }
+
   var body: some View {
     Section(group.name) {
       List {
-        ForEach(group.feeds, id: \.id) { feed in FeedItemView(feed: feed) }
-          .onMove { from, to in
-            withAnimation {
-              var s = group.feeds.sorted(by: { $0.order < $1.order })
-              s.move(fromOffsets: from, toOffset: to)
-              for (index, item) in s.enumerated() { item.order = index }
-              group.feeds = s
+        ForEach(matchedFeeds, id: \.id) { feed in
+          FeedItemView(feed: feed, query: $query)
+        }
+        .onMove { from, to in
+          withAnimation {
+            var s = group.feeds.sorted(by: { $0.order < $1.order })
+            s.move(fromOffsets: from, toOffset: to)
+            for (index, item) in s.enumerated() { item.order = index }
+            group.feeds = s
 
-              try? modelContext.save()
-            }
+            try? modelContext.save()
           }
+        }
 
         if group.feeds.count == 0 {
           Text("No feeds. Click the context menu below to add one.")
@@ -447,10 +476,9 @@ struct FeedGroupView: View {
 }
 
 struct FeedsSettingsView: View {
-  @State private var filter: String = ""
-  @FocusState var isFocused: Bool
   @State var presentPrompt: Bool = false
   @State var newName: String = ""
+  @State var query: String = ""
 
   @Environment(\.modelContext) var modelContext
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
@@ -465,14 +493,12 @@ struct FeedsSettingsView: View {
           // SEE: https://www.fullstackstanley.com/articles/replicating-the-macos-search-textfield-in-swiftui/
           HStack {
             Image(systemName: "magnifyingglass")
-            TextField("Search", text: $filter, prompt: Text("Search"))
+            TextField("Search", text: $query, prompt: Text("Search"))
               .labelsHidden().disableAutocorrection(true)
               .onSubmit {
                 // TODO
               }
-              .focused($isFocused)
           }
-
           Menu {
             Button("New group") { presentPrompt = true }
           } label: {
@@ -500,7 +526,9 @@ struct FeedsSettingsView: View {
         }
       }
 
-      ForEach(groups, id: \.id) { group in FeedGroupView(group: group) }
+      ForEach(groups, id: \.id) { group in
+        FeedGroupView(group: group, query: $query)
+      }
       if groups.count == 0 {
         Text("No feed groups. Click the plus button above to add one.")
           .frame(
