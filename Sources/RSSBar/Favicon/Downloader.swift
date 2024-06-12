@@ -32,15 +32,6 @@ struct BasicFaviconDownloader: FaviconDownloader {
     guard let origin = URLComponents(url: url, resolvingAgainstBaseURL: false)
     else { throw FaviconDownloadError.invalidURL }
 
-    // Always include the well-known favicon.ico file
-    var faviconLocation = URLComponents()
-    faviconLocation.scheme = origin.scheme
-    faviconLocation.host = origin.host
-    faviconLocation.port = origin.port
-    faviconLocation.path = "/favicon.ico"
-    urls.append(
-      FaviconURL(url: faviconLocation.url!, sizes: [], type: "image/x-icon"))
-
     // Fetch the index document to see if it has icons listed in its metadata
     var documentLocation = URLComponents()
     documentLocation.scheme = origin.scheme
@@ -63,11 +54,45 @@ struct BasicFaviconDownloader: FaviconDownloader {
         for icon in try document.nodes(
           forXPath: "/html/head/link[@rel=(\"icon\", \"alternate icon\")]")
         {
-          // For now, only support pngs (there are image source sets, icons sets
-          // and more that we don't want to handle right now).
+          guard let hrefNodes = try? icon.nodes(forXPath: "./@href") else {
+            continue
+          }
+          guard let href = hrefNodes.first else {
+            continue
+          }
+          guard let urlComponents = URLComponents(string: href.stringValue!)
+          else {
+            continue
+          }
+
+          let url = urlComponents.url(relativeTo: documentLocation.url!)!
+            .absoluteURL
+
           let typeNodes = try? icon.nodes(forXPath: "./@type")
-          let type = typeNodes?.first?.stringValue
-          if type != "image/png" { continue }
+          var type = typeNodes?.first?.stringValue
+
+          // If the server didn't include the icon type, try to identify it from
+          // the file extension
+          if type == nil {
+            switch url.pathExtension {
+            case "svg": type = "image/svg+xml"
+            case "png": type = "image/png"
+            case "ico": type = "image/x-icon"
+            default: throw FaviconDownloadError.unknownContentType
+            }
+          }
+
+          let supportedContentTypes = [
+            "image/svg+xml", "image/png", "image/x-icon",
+            "image/vnd.microsoft.icon",
+          ]
+          if !supportedContentTypes.contains(type!) {
+            logger.debug(
+              "Ignoring unsupported favicon content type \(type!, privacy: .public)"
+            )
+            continue
+          }
+
           let sizesNode = try? icon.nodes(forXPath: "./@sizes")
           let sizes = (sizesNode?.first?.stringValue ?? "")
             .split(
@@ -78,15 +103,13 @@ struct BasicFaviconDownloader: FaviconDownloader {
               return (scalars[0], scalars[1])
             })
 
-          let hrefNodes = try? icon.nodes(forXPath: "./@href")
-          if let href = hrefNodes?.first {
-            if let url = URLComponents(string: href.stringValue!) {
-              urls.append(
-                FaviconURL(
-                  url: url.url(relativeTo: documentLocation.url!)!,
-                  sizes: sizes, type: type))
-            }
-          }
+          urls.append(
+            FaviconURL(
+              url: url,
+              sizes: sizes,
+              type: type
+            )
+          )
         }
       }
     }
@@ -97,11 +120,19 @@ struct BasicFaviconDownloader: FaviconDownloader {
 
       if a.sizes.count == 1 && b.sizes.count == 1 {
         return a.sizes[0].0 > b.sizes[0].0
-
       }
 
       return false
     })
+
+    // Always include the well-known favicon.ico file
+    var faviconLocation = URLComponents()
+    faviconLocation.scheme = origin.scheme
+    faviconLocation.host = origin.host
+    faviconLocation.port = origin.port
+    faviconLocation.path = "/favicon.ico"
+    urls.append(
+      FaviconURL(url: faviconLocation.url!, sizes: [], type: "image/x-icon"))
 
     // Remove metadata and filter bogus URLs
     return urls.map { $0.url }
@@ -185,6 +216,8 @@ struct CachedFaviconDownloader: FaviconDownloader {
   func download(contentsOf url: URL) async throws -> URL? {
     guard let origin = url.host() else { throw FaviconDownloadError.invalidURL }
 
+    // Check cache for the origin the image is from (not necessarily the origin
+    // serving the web resource)
     if let data = DiskCache.shared.urlIfExists(forKey: origin) { return data }
 
     guard
@@ -192,7 +225,13 @@ struct CachedFaviconDownloader: FaviconDownloader {
         from: url)
     else { return nil }
 
-    try? DiskCache.shared.insert(Data(contentsOf: data), forKey: origin)
+    // Cache for the origin the image is from (not necessarily the origin
+    // serving the web resource)
+    do {
+      try DiskCache.shared.insert(Data(contentsOf: data), forKey: origin)
+    } catch {
+      logger.error("Failed to cache image: \(error, privacy: .public)")
+    }
 
     return data
   }
@@ -200,17 +239,29 @@ struct CachedFaviconDownloader: FaviconDownloader {
   func downloadPreferred(from url: URL) async throws -> URL? {
     guard let origin = url.host() else { throw FaviconDownloadError.invalidURL }
 
+    // Check cache for the given origin (not necessarily the origin serving the
+    // image)
     if let data = DiskCache.shared.urlIfExists(forKey: origin) { return data }
 
     let urls = try await self.identifyIcons(from: url)
-    print(urls)
 
     guard let url = urls.first else {
       logger.debug("Didn't find any favicons for url: \(url, privacy: .public)")
       return nil
     }
 
-    return try await self.download(contentsOf: url)
+    guard let data = try await self.download(contentsOf: url) else {
+      return nil
+    }
+
+    // Cache for the given origin (not necessarily the origin serving the image)
+    do {
+      try DiskCache.shared.insert(Data(contentsOf: data), forKey: origin)
+    } catch {
+      logger.error("Failed to cache image: \(error, privacy: .public)")
+    }
+
+    return data
   }
 }
 
