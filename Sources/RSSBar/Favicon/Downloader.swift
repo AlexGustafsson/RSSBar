@@ -94,14 +94,7 @@ struct BasicFaviconDownloader: FaviconDownloader {
           }
 
           let sizesNode = try? icon.nodes(forXPath: "./@sizes")
-          let sizes = (sizesNode?.first?.stringValue ?? "")
-            .split(
-              separator: " "
-            )
-            .map({ x in
-              let scalars = x.split(separator: "x").map({ Int($0)! })
-              return (scalars[0], scalars[1])
-            })
+          let sizes = parseIconSize(sizesNode?.first?.stringValue ?? "")
 
           urls.append(
             FaviconURL(
@@ -263,6 +256,29 @@ struct CachedFaviconDownloader: FaviconDownloader {
 
     return data
   }
+}
+
+// NOTE: This function is here and split up the way it is as Swift cannot infer
+// types when chaning funcs like split, map, filter and then map again.
+private func parseIconSize(_ value: String) -> [(Int, Int)] {
+  var sizes: [(Int, Int)] = []
+
+  for entry in value.split(separator: " ") {
+    let scalars = entry.split(separator: "x")
+    if scalars.count != 2 {
+      continue
+    }
+
+    let a = Int(scalars[0])
+    let b = Int(scalars[1])
+    if a == nil || b == nil {
+      continue
+    }
+
+    sizes.append((a!, b!))
+  }
+
+  return sizes
 }
 
 // TODO:
