@@ -466,7 +466,7 @@ struct FeedGroupView: View {
         }
         .dialogIcon(Image(systemName: "textformat.abc"))
         .alert(
-          "Test", isPresented: $shouldPresentSheet
+          "Add feed", isPresented: $shouldPresentSheet
         ) { AddFeedAlertView(group: group) }
         .dialogIcon(
           Image(systemName: "plus.circle.fill"))
