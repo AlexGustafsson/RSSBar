@@ -7,21 +7,6 @@ import os
 private let logger = Logger(
   subsystem: Bundle.main.bundleIdentifier!, category: "UI/Settings")
 
-struct GeneralSettingsView: View {
-  @AppStorage("showPreview") private var showPreview = true
-  @AppStorage("fontSize") private var fontSize = 12.0
-
-  var body: some View {
-    Form {
-      Toggle("Show Previews", isOn: $showPreview)
-      Slider(value: $fontSize, in: 9...96) {
-        Text("Font Size (\(fontSize, specifier: "%.0f") pts)")
-      }
-    }
-    .frame(width: 350, height: 100)
-  }
-}
-
 struct AdvancedSettingsView: View {
   @State private var presentResetDialog = false
 
@@ -545,11 +530,9 @@ struct FeedsSettingsView: View {
 }
 
 struct SettingsView: View {
-  private enum Tabs: Hashable { case general, feeds, advanced }
+  private enum Tabs: Hashable { case feeds, advanced }
   var body: some View {
     TabView {
-      GeneralSettingsView().tabItem { Label("General", systemImage: "gear") }
-        .tag(Tabs.general)
       FeedsSettingsView().tabItem { Label("Feeds", systemImage: "list.bullet") }
         .tag(Tabs.feeds)
       AdvancedSettingsView()
