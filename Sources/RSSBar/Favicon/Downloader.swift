@@ -198,8 +198,11 @@ struct BasicFaviconDownloader: FaviconDownloader {
 // TODO: Pass cache
 struct CachedFaviconDownloader: FaviconDownloader {
   private let underlyingDownloader: any FaviconDownloader
-  init(underlyingDownloader: any FaviconDownloader) {
+  private let cacheOnly: Bool
+
+  init(underlyingDownloader: any FaviconDownloader, cacheOnly: Bool = false) {
     self.underlyingDownloader = underlyingDownloader
+    self.cacheOnly = cacheOnly
   }
 
   func identifyIcons(from url: URL) async throws -> [URL] {
@@ -212,6 +215,10 @@ struct CachedFaviconDownloader: FaviconDownloader {
     // Check cache for the origin the image is from (not necessarily the origin
     // serving the web resource)
     if let data = DiskCache.shared.urlIfExists(forKey: origin) { return data }
+
+    if self.cacheOnly {
+      return nil
+    }
 
     guard
       let data = try await self.underlyingDownloader.downloadPreferred(
@@ -235,6 +242,10 @@ struct CachedFaviconDownloader: FaviconDownloader {
     // Check cache for the given origin (not necessarily the origin serving the
     // image)
     if let data = DiskCache.shared.urlIfExists(forKey: origin) { return data }
+
+    if self.cacheOnly {
+      return nil
+    }
 
     let urls = try await self.identifyIcons(from: url)
 

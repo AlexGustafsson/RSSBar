@@ -9,11 +9,27 @@ private let logger = Logger(
 
 struct AdvancedSettingsView: View {
   @State private var presentResetDialog = false
+  @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
+    true
 
   @Environment(\.modelContext) var modelContext
 
   var body: some View {
     Form {
+      Section("Favicons") {
+        Toggle(
+          isOn: $enableFaviconsFetching
+        ) {
+          Text("Fetch favicons")
+        }
+
+        Button("Clear cache") {
+          do {
+            try DiskCache.shared.removeAll()
+          } catch { logger.error("Failed to clear data") }
+        }
+      }
+
       Section("Actions") {
         Button("Reset...") { presentResetDialog = true }
           .confirmationDialog(

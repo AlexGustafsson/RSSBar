@@ -8,6 +8,8 @@ struct Favicon: View {
   public var url: URL?
 
   @State private var favicon: URL?
+  @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
+    true
 
   var body: some View {
     AsyncImage(url: favicon) { image in
@@ -28,7 +30,8 @@ struct Favicon: View {
         if let url {
           do {
             favicon = try await CachedFaviconDownloader(
-              underlyingDownloader: BasicFaviconDownloader()
+              underlyingDownloader: BasicFaviconDownloader(),
+              cacheOnly: !enableFaviconsFetching
             )
             .downloadPreferred(from: url)
           } catch {
