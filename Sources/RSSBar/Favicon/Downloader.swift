@@ -221,8 +221,7 @@ struct CachedFaviconDownloader: FaviconDownloader {
     }
 
     guard
-      let data = try await self.underlyingDownloader.downloadPreferred(
-        from: url)
+      let data = try await self.underlyingDownloader.download(contentsOf: url)
     else { return nil }
 
     // Cache for the origin the image is from (not necessarily the origin

@@ -78,7 +78,8 @@ struct FeedItemDetailsView: View {
       Form {
         Section {
           HStack {
-            Favicon(url: feed.url).frame(width: 48, height: 48)
+            Favicon(url: feed.url, fallbackCharacter: feed.name)
+              .frame(width: 48, height: 48)
             VStack(alignment: .leading) {
               if editing {
                 TextField("Name", text: $newName, prompt: Text(feed.name))
@@ -154,7 +155,8 @@ struct FeedItemDetailsView: View {
               }), id: \.id
             ) { item in
               HStack(alignment: .center) {
-                Favicon(url: item.url).frame(width: 24, height: 24)
+                Favicon(url: item.url)
+                  .frame(width: 24, height: 24)
                 VStack(alignment: .leading) {
                   Text(item.title).foregroundColor(.primary)
                   Text(item.date?.formattedDistance(to: Date()) ?? "")
@@ -186,7 +188,7 @@ struct FeedItemDetailsView: View {
           }
         }
       }
-      .padding(20).formStyle(.grouped)
+      .padding(5).formStyle(.grouped)
 
       Divider()
 
@@ -243,61 +245,6 @@ struct FeedItemDetailsView: View {
   }
 }
 
-struct AddFeedAlertView: View {
-  @State var group: FeedGroup
-
-  @Environment(\.modelContext) var modelContext
-  @Environment(\.dismiss) var dismiss
-  @Environment(\.fetchFeeds) var fetchFeeds
-
-  @State private var newName: String = ""
-  @State private var newNameValidated = false
-  @State private var newURL: String = ""
-  @State private var newURLValidated = false
-
-  var body: some View {
-    VStack {
-      TextField("Name", text: $newName, prompt: Text("Name"))
-        .onReceive(
-          Just(newName)
-        ) { newName in newNameValidated = newName != "" }
-
-      TextField("Feed URL", text: $newURL, prompt: Text("Feed URL"))
-        .onReceive(
-          Just(newURL)
-        ) { newURL in
-          guard let url = URL(string: newURL) else {
-            newURLValidated = false
-            return
-          }
-
-          let isHTTP = url.scheme?.hasPrefix("http") ?? false
-          let isHTTPS = url.scheme?.hasPrefix("https") ?? false
-          let hasDomain = url.host() != nil
-          newURLValidated = (isHTTP || isHTTPS) && hasDomain
-        }
-
-      Button("OK") {
-        withAnimation {
-          let feed = Feed(name: newName, url: URL(string: newURL)!)
-          var s = group.feeds.sorted(by: { $0.order < $1.order })
-          s.append(feed)
-          for (index, item) in s.enumerated() { item.order = index }
-          group.feeds = s
-          try? modelContext.save()
-          Task { await fetchFeeds?(ignoreSchedule: false) }
-        }
-      }
-      .keyboardShortcut(.defaultAction)
-      .disabled(
-        !newNameValidated || !newURLValidated)
-      Button("Cancel", role: .cancel) {
-        // Do nothing
-      }
-    }
-  }
-}
-
 struct FeedItemView: View {
   @State var feed: Feed
   @Binding var query: String
@@ -306,7 +253,8 @@ struct FeedItemView: View {
 
   var body: some View {
     HStack {
-      Favicon(url: feed.url).frame(width: 24, height: 24)
+      Favicon(url: feed.url, fallbackCharacter: feed.name)
+        .frame(width: 24, height: 24)
 
       VStack(alignment: .leading) {
         Text(feed.name) { string in
@@ -465,11 +413,9 @@ struct FeedGroupView: View {
           }
         }
         .dialogIcon(Image(systemName: "textformat.abc"))
-        .alert(
-          "Add feed", isPresented: $shouldPresentSheet
-        ) { AddFeedAlertView(group: group) }
-        .dialogIcon(
-          Image(systemName: "plus.circle.fill"))
+        .sheet(isPresented: $shouldPresentSheet) {
+          AddFeedView(group: group)
+        }
       }
     }
 
@@ -542,6 +488,100 @@ struct FeedsSettingsView: View {
 
     }
     .formStyle(.grouped)
+  }
+}
+
+struct AddFeedView: View {
+  @State var group: FeedGroup
+
+  @State private var newName: String = ""
+  @State private var newNameValidated = false
+  @State private var newURL: URL?
+  @State private var newURLString: String = ""
+  @State private var newURLValidated = false
+
+  @Environment(\.modelContext) var modelContext
+  @Environment(\.dismiss) var dismiss
+  @Environment(\.fetchFeeds) var fetchFeeds
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Form {
+        Section("Add feed") {
+          HStack {
+            Favicon(
+              url: newURL,
+              fallbackCharacter: newName,
+              fallbackSystemName: "list.bullet"
+            )
+            .frame(width: 48, height: 48)
+            VStack(alignment: .leading) {
+              TextField("Name", text: $newName, prompt: Text("Name"))
+                .textFieldStyle(.plain).labelsHidden().font(.headline)
+                .font(.footnote).foregroundStyle(.secondary)
+                .onReceive(
+                  Just(newName)
+                ) { newName in newNameValidated = newName != "" }
+
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+          }
+        }
+
+        Section {
+          TextField(
+            "Feed", text: $newURLString,
+            prompt: Text("https://example.com/feed.atom")
+          )
+          .onReceive(
+            Just(newURLString)
+          ) { newURLString in
+            guard let url = URL(string: newURLString) else {
+              newURLValidated = false
+              return
+            }
+
+            let isHTTP = url.scheme?.hasPrefix("http") ?? false
+            let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+            let hasDomain = url.host() != nil
+            newURLValidated = (isHTTP || isHTTPS) && hasDomain
+            if newURLValidated {
+              newURL = url
+            }
+          }
+        }
+      }
+      .padding(5).formStyle(.grouped)
+
+      Divider()
+
+      // Footer
+      HStack {
+        Spacer()
+        Button(
+          "Cancel"
+        ) {
+          dismiss()
+        }
+        .keyboardShortcut(.cancelAction)
+        Button("Add") {
+          withAnimation {
+            let feed = Feed(name: newName, url: newURL!)
+            var s = group.feeds.sorted(by: { $0.order < $1.order })
+            s.append(feed)
+            for (index, item) in s.enumerated() { item.order = index }
+            group.feeds = s
+            try? modelContext.save()
+            dismiss()
+            Task { await fetchFeeds?(ignoreSchedule: false) }
+          }
+        }
+        .keyboardShortcut(.defaultAction)
+        .disabled(!newNameValidated || !newURLValidated)
+      }
+      .padding(20)
+    }
+    .frame(width: 420)
   }
 }
 

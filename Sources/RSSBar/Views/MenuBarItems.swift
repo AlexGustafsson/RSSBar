@@ -30,7 +30,8 @@ struct MenuBarFeedItem: View {
   var body: some View {
     Button(action: { if feed.items.count > 0 { showFeedItems = true } }) {
       HStack(alignment: .center) {
-        Favicon(url: feed.url).frame(width: 24, height: 24)
+        Favicon(url: feed.url, fallbackCharacter: feed.name)
+          .frame(width: 24, height: 24)
         Text(feed.name).frame(maxWidth: .infinity, alignment: .leading)
           .padding(
             EdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)

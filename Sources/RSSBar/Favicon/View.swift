@@ -6,6 +6,8 @@ private let logger = Logger(
 
 struct Favicon: View {
   public var url: URL?
+  public var fallbackCharacter: String?
+  public var fallbackSystemName: String?
 
   @State private var favicon: URL?
   @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
@@ -17,7 +19,19 @@ struct Favicon: View {
     } placeholder: {
       ZStack {
         Rectangle().fill(.gray).frame(width: .infinity, height: .infinity)
-        if let url { Text(url.host()?.first?.description.uppercased() ?? "") }
+        if let fallbackCharacter, fallbackCharacter != "" {
+          Text(
+            fallbackCharacter.first?
+              .description.uppercased() ?? ""
+          )
+        } else if let fallbackSystemName {
+          Image(systemName: fallbackSystemName)
+        } else {
+          Text(
+            url?.host()?
+              .first?
+              .description.uppercased() ?? "")
+        }
       }
     }
     .mask(
