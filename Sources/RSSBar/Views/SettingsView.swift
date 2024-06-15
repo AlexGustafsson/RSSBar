@@ -500,14 +500,34 @@ struct AddFeedView: View {
   @State private var newURLString: String = ""
   @State private var newURLValidated = false
 
+  @State private var newRepositoryOwner = ""
+  @State private var newRepositoryName = ""
+
   @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
   @Environment(\.fetchFeeds) var fetchFeeds
 
+  enum FeedType: String, CaseIterable, Identifiable {
+    case url, github
+
+    var id: Self { self }
+
+    var description: String {
+      switch self {
+      case .url:
+        return "Feed"
+      case .github:
+        return "GitHub Release"
+      }
+    }
+  }
+
+  @State private var selectedFeedType: FeedType = .url
+
   var body: some View {
     VStack(spacing: 0) {
       Form {
-        Section("Add feed") {
+        Section {
           HStack {
             Favicon(
               url: newURL,
@@ -526,28 +546,98 @@ struct AddFeedView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
           }
+        } header: {
+          Menu {
+            Button("Add Feed") {
+              selectedFeedType = .url
+            }
+            Button("Add GitHub Release") {
+              selectedFeedType = .github
+            }
+          } label: {
+            Text("Add \(selectedFeedType.description)").font(.headline)
+          }
+          .menuStyle(.borderlessButton)
         }
 
-        Section {
-          TextField(
-            "Feed", text: $newURLString,
-            prompt: Text("https://example.com/feed.atom")
-          )
-          .onReceive(
-            Just(newURLString)
-          ) { newURLString in
-            guard let url = URL(string: newURLString) else {
-              newURLValidated = false
-              return
+        switch selectedFeedType {
+        case .url:
+          Section {
+            TextField(
+              "Feed", text: $newURLString,
+              prompt: Text("https://example.com/feed.atom")
+            )
+            .onReceive(
+              Just(newURLString)
+            ) { newURLString in
+              guard let url = URL(string: newURLString) else {
+                newURLValidated = false
+                return
+              }
+
+              let isHTTP = url.scheme?.hasPrefix("http") ?? false
+              let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+              let hasDomain = url.host() != nil
+              newURLValidated = (isHTTP || isHTTPS) && hasDomain
+              if newURLValidated {
+                newURL = url
+              }
+            }
+          }
+        case .github:
+          Section {
+            TextField(
+              "Repository owner", text: $newRepositoryOwner,
+              prompt: Text("owner")
+            )
+            .onReceive(
+              Just(newRepositoryOwner)
+            ) { newRepositoryOwner in
+              guard
+                let url = URL(
+                  string:
+                    "https://github.com/\(newRepositoryOwner)/\(newRepositoryName)"
+                )
+              else {
+                newURLValidated = false
+                return
+              }
+
+              let isHTTP = url.scheme?.hasPrefix("http") ?? false
+              let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+              let hasDomain = url.host() != nil
+              newURLValidated = (isHTTP || isHTTPS) && hasDomain
+              if newURLValidated {
+                newURL = url
+              }
             }
 
-            let isHTTP = url.scheme?.hasPrefix("http") ?? false
-            let isHTTPS = url.scheme?.hasPrefix("https") ?? false
-            let hasDomain = url.host() != nil
-            newURLValidated = (isHTTP || isHTTPS) && hasDomain
-            if newURLValidated {
-              newURL = url
+            TextField(
+              "Repository name", text: $newRepositoryName,
+              prompt: Text("name")
+            )
+            .onReceive(
+              Just(newRepositoryOwner)
+            ) { newRepositoryOwner in
+              guard
+                let url = URL(
+                  string:
+                    "https://github.com/\(newRepositoryOwner)/\(newRepositoryName)"
+                )
+              else {
+                newURLValidated = false
+                return
+              }
+
+              let isHTTP = url.scheme?.hasPrefix("http") ?? false
+              let isHTTPS = url.scheme?.hasPrefix("https") ?? false
+              let hasDomain = url.host() != nil
+              newURLValidated = (isHTTP || isHTTPS) && hasDomain
+              if newURLValidated {
+                newURL = url
+              }
             }
+
           }
         }
       }
@@ -581,7 +671,7 @@ struct AddFeedView: View {
       }
       .padding(20)
     }
-    .frame(width: 420)
+    .frame(width: 420, height: 420)
   }
 }
 
