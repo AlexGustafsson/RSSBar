@@ -99,9 +99,11 @@ struct MenuBarTextItem: View {
     } label: {
       HStack {
         VStack(alignment: .leading) {
-          Text(title).foregroundColor(.primary)
+          Text(title).foregroundColor(.primary).lineLimit(1)
+            .truncationMode(.tail)
           if subtitle != nil {
             Text(subtitle!).font(.footnote).foregroundColor(.primary)
+              .lineLimit(1).truncationMode(.tail)
           }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
