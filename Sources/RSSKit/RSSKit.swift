@@ -6,6 +6,8 @@ enum RSSError: Error {
   case invalidRootElementType
   case invalidContentType
   case unknownContentType
+  case notFound
+  case unexpectedStatusCode(Int)
 }
 
 public struct RSSFeed: Equatable, Identifiable {
@@ -37,10 +39,15 @@ public struct RSSFeed: Equatable, Identifiable {
     }
   }
 
+  static let supportedContentTypes: [String] = [
+    "application/atom+xml", "application/rss+xml", "application/feed+json",
+    "text/xml",
+  ]
+
   public init(contentsOf url: URL) async throws {
     var request = HTTPRequest(method: .get, url: url)
-    request.headerFields[.accept] =
-      "application/atom+xml,application/rss+xml,application/feed+json,text/xml"
+    request.headerFields[.accept] = RSSFeed.supportedContentTypes.joined(
+      separator: ",")
     request.headerFields[.userAgent] = "RSSBar/1.0"
 
     let (responseBody, response) = try await URLSession.shared.download(
@@ -49,6 +56,44 @@ public struct RSSFeed: Equatable, Identifiable {
     var contentType = response.headerFields[.contentType]
     if let actualContentType = contentType?.cut(at: ";")?.0 {
       contentType = String(actualContentType)
+    }
+
+    // If the server returned HTML, try to find an alternate link
+    if contentType == "text/html" {
+      guard
+        let document = try? XMLDocument(
+          contentsOf: responseBody,
+          options: [.nodeLoadExternalEntitiesNever, .documentTidyHTML])
+      else {
+        throw RSSError.invalidContentType
+      }
+
+      for link in try document.nodes(
+        forXPath: "/html/head/link[@rel=\"alternate\"]")
+      {
+        guard let type = try? link.nodes(forXPath: "./@type").first?.stringValue
+        else {
+          continue
+        }
+
+        guard let href = try? link.nodes(forXPath: "./@href").first?.stringValue
+        else {
+          continue
+        }
+
+        if !RSSFeed.supportedContentTypes.contains(type) {
+          continue
+        }
+
+        guard let url = URL(string: href) else {
+          continue
+        }
+
+        try await self.init(contentsOf: url)
+        return
+      }
+
+      throw RSSError.unknownContentType
     }
 
     // If the server didn't respond with a content type, try to identify it from

@@ -58,7 +58,8 @@ private let logger = Logger(
                   for item in result.entries {
                     let url = item.links.first
                     let newItem = FeedItem(
-                      id: item.id, title: item.title ?? "Item",
+                      id: item.id,
+                      title: item.title ?? item.summary ?? "Feed item",
                       date: item.updated, read: nil, url: url)
                     newItem.feed = feed
                     modelContext.insert(newItem)
