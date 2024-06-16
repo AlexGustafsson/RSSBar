@@ -548,11 +548,48 @@ struct AddFeedView: View {
           }
         } header: {
           Menu {
-            Button("Add Feed") {
+            Button("URL") {
+              // TODO: Add support for discoverying feed from linl
+              // <link rel="alternate" type="application/rss+xml" href="xxx">
               selectedFeedType = .url
             }
-            Button("Add GitHub Release") {
-              selectedFeedType = .github
+            Section("GitHub") {
+              Button("Releases") {
+                selectedFeedType = .github
+              }
+              Button("Tags") {
+              }
+              Button("Commits") {
+              }
+              Button("User") {
+              }
+            }
+            Section("Social") {
+              Button("Mastodon user") {
+              }
+              Button("Bluesky profile") {
+                // https://bsky.app/profile/molly.wiki + alternate link
+              }
+            }
+            Section("Redit") {
+              Button("Homepage") {
+                // "http://www.reddit.com/.rss"
+              }
+              Button("Subreddit") {
+                // "https://old.reddit.com/r/rss/hot/.rss"
+              }
+              Button("User") {
+                // http://old.reddit.com/user/alienth/.rss,
+              }
+              Button("Domain") {
+                // https://old.reddit.com/domain/imgur.com/.rss
+              }
+            }
+            Section("Proxy") {
+              Button("Open RSS") {
+                // 404: https://openrss.org/www.doesnoteexist.com
+                // rss: https://openrss.org/www.starwars.com
+              }
             }
           } label: {
             Text("Add \(selectedFeedType.description)").font(.headline)
@@ -637,7 +674,6 @@ struct AddFeedView: View {
                 newURL = url
               }
             }
-
           }
         }
       }
