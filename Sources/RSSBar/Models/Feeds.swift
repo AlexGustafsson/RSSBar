@@ -19,8 +19,8 @@ enum FeedUpdateInterval: Codable {
   }
 }
 
-@Model class FeedGroup: Identifiable {
-  @Attribute(.unique) var name: String
+@Model class FeedGroup {
+  var name: String
   @Relationship(deleteRule: .cascade, inverse: \Feed.group) var feeds: [Feed] =
     []
   var order: Int = 0
@@ -31,13 +31,11 @@ enum FeedUpdateInterval: Codable {
     self.init(name: name)
     self.feeds = feeds
   }
-
-  var id: String { return self.name }
 }
 
-@Model class Feed: Identifiable {
-  @Attribute(.unique) var name: String
-  @Attribute(.unique) var url: URL
+@Model class Feed {
+  var name: String
+  var url: URL
 
   @Relationship(deleteRule: .cascade, inverse: \FeedItem.feed) var items:
     [FeedItem] = []
@@ -62,11 +60,9 @@ enum FeedUpdateInterval: Codable {
     self.updateInterval = updateInterval
   }
 
-  var id: String { return self.name }
-
   var unreadItemsCount: Int { items.filter({ item in item.read == nil }).count }
 }
-@Model class FeedItem: Identifiable {
+@Model class FeedItem {
   @Attribute(.unique) var id: String
   var title: String
   var date: Date?

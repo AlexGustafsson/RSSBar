@@ -22,8 +22,15 @@ private let logger = Logger(
       NSApp.setActivationPolicy(.accessory)
     }
 
-    let modelContainer = try! ModelContainer(
-      for: FeedGroup.self, Feed.self, FeedItem.self)
+    let modelContainer: ModelContainer
+    do {
+      modelContainer = try initializeModelContainer()
+    } catch {
+      logger.error("Failed to initialize model container \(error)")
+      exit(1)
+    }
+    // Keep local reference which is used in threads later on to deal with
+    // escaping self reference
     self.modelContainer = modelContainer
 
     let fetchFeeds = FetchFeedsAction(action: { ignoreSchedule in
@@ -58,7 +65,7 @@ private let logger = Logger(
                   for item in result.entries {
                     let url = item.links.first
                     let newItem = FeedItem(
-                      id: item.id,
+                      id: UUID.v8(withHash: "\(feed.id):\(item.id)"),
                       title: item.title ?? item.summary ?? "Feed item",
                       date: item.updated, read: nil, url: url)
                     newItem.feed = feed
