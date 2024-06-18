@@ -178,13 +178,19 @@ struct AddFeedView: View {
         } header: {
           Menu {
             ForEach(self.forms.sections, id: \.name) { section in
-              Section(section.name) {
-                ForEach(section.items, id: \.description) { item in
-                  Button(item.description) {
-                    selectedFormItem = item
-                    // Clear form key value state
-                    form.kv = [:]
-                  }
+              let items = ForEach(section.items, id: \.description) { item in
+                Button(item.description) {
+                  selectedFormItem = item
+                  // Clear form key value state
+                  form.kv = [:]
+                }
+              }
+
+              if section.name == "" {
+                items
+              } else {
+                Section(section.name) {
+                  items
                 }
               }
             }
