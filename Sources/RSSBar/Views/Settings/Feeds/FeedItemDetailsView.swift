@@ -47,7 +47,7 @@ struct FeedItemDetailsView: View {
                 "Feed", text: $newURL, prompt: Text(feed.url.absoluteString)
               )
               .labelsHidden()
-              .onReceive(Just(newURL)) { newURL in
+              .onChange(of: newURL) { _, newURL in
                 guard let url = URL(string: newURL) else {
                   newURLValidated = false
                   return
