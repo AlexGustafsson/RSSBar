@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/MenuBar")
 
 struct MenuBarFeedItem: View {
   var feed: Feed
@@ -59,9 +63,13 @@ struct MenuBarFeedItem: View {
           Divider()
           MenuBarTextItem(title: "Mark all as read") {
             for item in feed.items {
-              if item.read == nil { item.read = Date() }
+              item.read = item.read ?? Date()
             }
-            try? modelContext.save()
+            do {
+              try modelContext.save()
+            } catch {
+              logger.error("Failed to mark all items as read \(error)")
+            }
             showFeedItems = false
           }
         }
