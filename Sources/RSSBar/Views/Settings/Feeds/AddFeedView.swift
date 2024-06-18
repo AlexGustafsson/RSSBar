@@ -22,7 +22,7 @@ private struct FormItem: Decodable {
 
 private struct URLTemplate {
   public static func render(_ template: String, with values: [String: Any])
-    -> String
+    -> String?
   {
     let regexp = #/\${([^}]+)}/#
     let matches = template.matches(of: regexp)
@@ -35,8 +35,15 @@ private struct URLTemplate {
     // TODO: Doesn't handle verbatim "${}" in URLs
     var result = template
     for variable in variables {
-      result.replace(
-        try! Regex("\\${\(variable)}"), with: values[variable] as? String ?? "")
+      guard let value = values[variable] as? String else {
+        return nil
+      }
+
+      if value == "" {
+        return nil
+      }
+
+      result.replace(try! Regex("\\${\(variable)}"), with: value)
     }
 
     return result
@@ -50,8 +57,9 @@ private struct FormItemView: View {
   @State var i = Int.random(in: 0...50)
 
   private func updateForm() {
-    self.form.url = URLTemplate.render(
-      self.formItem.template, with: self.form.kv)
+    self.form.url =
+      URLTemplate.render(
+        self.formItem.template, with: self.form.kv) ?? ""
   }
 
   var body: some View {
