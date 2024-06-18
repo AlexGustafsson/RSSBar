@@ -61,19 +61,31 @@ private let logger = Logger(
                 )
                 do {
                   let result = try await RSSFeed(contentsOf: feed.url)
-                  // TODO: Keep read date etc.
                   for item in result.entries {
-                    let url = item.links.first
+                    let id = UUID.v8(withHash: "\(feed.id):\(item.id)")
+
+                    let oldItem = feed.items.first(where: {
+                      $0.id == id
+                    })
+
                     let newItem = FeedItem(
-                      id: UUID.v8(withHash: "\(feed.id):\(item.id)"),
+                      id: id,
                       title: item.title ?? item.summary ?? "Feed item",
-                      date: item.updated, read: nil, url: url)
+                      date: item.updated,
+                      read: oldItem?.read,
+                      url: item.links.first
+                    )
                     newItem.feed = feed
+
                     modelContext.insert(newItem)
                   }
                   feed.lastUpdated = Date()
                   modelContext.insert(feed)
-                  try? modelContext.save()
+                  do {
+                    try modelContext.save()
+                  } catch {
+                    logger.error("Failed to save new items \(error)")
+                  }
                   logger.debug(
                     "Feed updated \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(result.entries.count)"
                   )
