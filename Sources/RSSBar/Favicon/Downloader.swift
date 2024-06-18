@@ -54,13 +54,13 @@ struct BasicFaviconDownloader: FaviconDownloader {
         for icon in try document.nodes(
           forXPath: "/html/head/link[@rel=(\"icon\", \"alternate icon\")]")
         {
-          guard let hrefNodes = try? icon.nodes(forXPath: "./@href") else {
+          guard
+            let href = try? icon.nodes(forXPath: "./@href").first?.stringValue
+          else {
             continue
           }
-          guard let href = hrefNodes.first else {
-            continue
-          }
-          guard let urlComponents = URLComponents(string: href.stringValue!)
+
+          guard let urlComponents = URLComponents(string: href)
           else {
             continue
           }
@@ -68,8 +68,7 @@ struct BasicFaviconDownloader: FaviconDownloader {
           let url = urlComponents.url(relativeTo: documentLocation.url!)!
             .absoluteURL
 
-          let typeNodes = try? icon.nodes(forXPath: "./@type")
-          var type = typeNodes?.first?.stringValue
+          var type = try? icon.nodes(forXPath: "./@type").first?.stringValue
 
           // If the server didn't include the icon type, try to identify it from
           // the file extension
@@ -93,8 +92,8 @@ struct BasicFaviconDownloader: FaviconDownloader {
             continue
           }
 
-          let sizesNode = try? icon.nodes(forXPath: "./@sizes")
-          let sizes = parseIconSize(sizesNode?.first?.stringValue ?? "")
+          let sizes = parseIconSize(
+            try? icon.nodes(forXPath: "./@sizes").first?.stringValue)
 
           urls.append(
             FaviconURL(
@@ -270,10 +269,14 @@ struct CachedFaviconDownloader: FaviconDownloader {
 
 // NOTE: This function is here and split up the way it is as Swift cannot infer
 // types when chaning funcs like split, map, filter and then map again.
-private func parseIconSize(_ value: String) -> [(Int, Int)] {
+private func parseIconSize(_ value: String?) -> [(Int, Int)] {
   var sizes: [(Int, Int)] = []
 
-  for entry in value.split(separator: " ") {
+  if value == nil {
+    return sizes
+  }
+
+  for entry in value!.split(separator: " ") {
     let scalars = entry.split(separator: "x")
     if scalars.count != 2 {
       continue
