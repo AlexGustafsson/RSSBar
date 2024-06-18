@@ -90,9 +90,105 @@
           "components": [
             {
               "type": "text",
-              "label": "User name",
+              "label": "Username",
               "name": "user",
               "examples": ["traefik", "vlang", "pocketbase"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "items": [
+        {
+          "title": "Add Mastodon user feed",
+          "description": "Mastodon user",
+          "template": "https://mstdn.social/${handle}",
+          "components": [
+            {
+              "type": "text",
+              "label": "Handle",
+              "name": "handle",
+              "examples": ["@FediTips", "@gargron", "@gamingonlinux"]
+            }
+          ]
+        },
+        {
+          "title": "Add Bluesky user feed",
+          "description": "Bluesky user",
+          "template": "https://bsky.app/profile/${handle}",
+          "components": [
+            {
+              "type": "text",
+              "label": "Handle",
+              "name": "handle",
+              "examples": ["jay.bsky.team", "bsky.app", "theonion.com"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reddit",
+      "items": [
+        {
+          "title": "Add Reddit user feed",
+          "description": "User",
+          "template": "https://old.reddit.com/user/${user}/.rss",
+          "components": [
+            {
+              "type": "text",
+              "label": "Username",
+              "name": "user",
+              "examples": ["govschwarzenegger", "ReallyRickAstley"]
+            }
+          ]
+        },
+        {
+          "title": "Add Reddit subredddit feed",
+          "description": "Subreddit",
+          "template": "https://old.reddit.com/r/${subreddit}/hot/.rss",
+          "components": [
+            {
+              "type": "text",
+              "label": "Subreddit",
+              "name": "subreddit",
+              "examples": ["AskReddit", "worldnews", "news"]
+            }
+          ]
+        },
+        {
+          "title": "Add Reddit domain feed",
+          "description": "Domain",
+          "template": "https://old.reddit.com/domain/${domain}/.rss",
+          "components": [
+            {
+              "type": "text",
+              "label": "Domain",
+              "name": "domain",
+              "examples": ["imgur.com", "news.ycombinator.com"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Proxy",
+      "items": [
+        {
+          "title": "Add OpenRSS feed",
+          "description": "OpenRSS",
+          "template": "https://openrss.org/${url}",
+          "components": [
+            {
+              "type": "text",
+              "name": "url",
+              "label": "URL",
+              "examples": [
+                "www.starwars.com",
+                "www.uber.com/en-JP/blog/engineering/"
+              ]
             }
           ]
         }
