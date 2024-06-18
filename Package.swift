@@ -23,7 +23,11 @@ let package = Package(
         "RSSKit", .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
         .product(name: "SettingsAccess", package: "SettingsAccess"),
-      ], resources: [.copy("Resources/icon.png"), .copy("Resources/icon.svg")],
+      ],
+      resources: [
+        .copy("Resources/icon.png"), .copy("Resources/icon.svg"),
+        .copy("Resources/feed-forms.json"),
+      ],
       linkerSettings: [
         .unsafeFlags([
           "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker",

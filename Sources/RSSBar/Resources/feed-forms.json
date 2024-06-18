@@ -1,0 +1,102 @@
+{
+  "sections": [
+    {
+      "name": "",
+      "items": [
+        {
+          "title": "Add new feed",
+          "description": "Feed URL",
+          "template": "${url}",
+          "components": [
+            {
+              "type": "text",
+              "name": "url",
+              "label": "Feed",
+              "examples": [
+                "https://example.com/feed.atom",
+                "https://example.com/feed.rss",
+                "https://example.com/feed.xml",
+                "https://example.com/feed.json"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GitHub",
+      "items": [
+        {
+          "title": "Add GitHub releases feed",
+          "description": "Releases",
+          "template": "https://github.com/${owner}/${repo}/releases.atom",
+          "components": [
+            {
+              "type": "text",
+              "label": "Repository owner",
+              "name": "owner",
+              "examples": ["traefik", "vlang", "pocketbase"]
+            },
+            {
+              "type": "text",
+              "label": "Repository name",
+              "name": "repo",
+              "examples": ["traefik", "v", "pocketbase"]
+            }
+          ]
+        },
+        {
+          "title": "Add GitHub tags feed",
+          "description": "Tags",
+          "template": "https://github.com/${owner}/${repo}/tags.atom",
+          "components": [
+            {
+              "type": "text",
+              "label": "Repository owner",
+              "name": "owner",
+              "examples": ["traefik", "vlang", "pocketbase"]
+            },
+            {
+              "type": "text",
+              "label": "Repository name",
+              "name": "repo",
+              "examples": ["traefik", "v", "pocketbase"]
+            }
+          ]
+        },
+        {
+          "title": "Add GitHub commits feed",
+          "description": "Commits",
+          "template": "https://github.com/${owner}/${repo}/commits.atom",
+          "components": [
+            {
+              "type": "text",
+              "label": "Repository owner",
+              "name": "owner",
+              "examples": ["traefik", "vlang", "pocketbase"]
+            },
+            {
+              "type": "text",
+              "label": "Repository name",
+              "name": "repo",
+              "examples": ["traefik", "v", "pocketbase"]
+            }
+          ]
+        },
+        {
+          "title": "Add GitHub user feed",
+          "description": "User",
+          "template": "https://github.com/${user}.atom",
+          "components": [
+            {
+              "type": "text",
+              "label": "User name",
+              "name": "user",
+              "examples": ["traefik", "vlang", "pocketbase"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
