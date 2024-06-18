@@ -182,6 +182,8 @@ struct AddFeedView: View {
                 ForEach(section.items, id: \.description) { item in
                   Button(item.description) {
                     selectedFormItem = item
+                    // Clear form key value state
+                    form.kv = [:]
                   }
                 }
               }
