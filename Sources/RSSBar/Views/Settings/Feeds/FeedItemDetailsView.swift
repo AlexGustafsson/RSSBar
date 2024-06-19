@@ -29,7 +29,7 @@ struct FeedItemDetailsView: View {
                 TextField("Name", text: $newName, prompt: Text(feed.name))
                   .textFieldStyle(.plain).labelsHidden().font(.headline)
               } else {
-                Text(feed.name).font(.headline)
+                TruncatedText(feed.name).font(.headline)
               }
               Text(
                 feed.lastUpdated == nil
@@ -59,7 +59,7 @@ struct FeedItemDetailsView: View {
                 newURLValidated = (isHTTP || isHTTPS) && hasDomain
               }
             } else {
-              Text(verbatim: feed.url.absoluteString)
+              TruncatedText(verbatim: feed.url.absoluteString)
             }
           }
           LabeledContent("Items") { Text("\(feed.items.count)") }
@@ -102,16 +102,7 @@ struct FeedItemDetailsView: View {
                 Favicon(url: item.url)
                   .frame(width: 24, height: 24)
                 VStack(alignment: .leading) {
-                  Text(
-                    item.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                  )
-                  .help(
-                    Text(
-                      item.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                    )
-                  )
-                  .foregroundColor(.primary).lineLimit(1)
-                  .truncationMode(.tail)
+                  TruncatedText(item.title).foregroundColor(.primary)
                   if item.date != nil {
                     Text(item.date!.formattedDistance(to: Date()))
                       .foregroundColor(.primary).font(.footnote)

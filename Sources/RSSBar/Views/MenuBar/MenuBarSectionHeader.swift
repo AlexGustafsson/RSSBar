@@ -8,7 +8,7 @@ struct MenuBarSectionHeader: View {
   }
 
   var body: some View {
-    Text(self.text).fontWeight(.bold)
+    TruncatedText(self.text).fontWeight(.bold)
       .frame(
         maxWidth: .infinity, alignment: .leading
       )

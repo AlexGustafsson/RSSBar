@@ -15,18 +15,9 @@ struct MenuBarTextItem: View {
     } label: {
       HStack {
         VStack(alignment: .leading) {
-          Text(
-            title.trimmingCharacters(in: .whitespacesAndNewlines)
-          )
-          .help(Text(title.trimmingCharacters(in: .whitespacesAndNewlines)))
-          .foregroundColor(.primary).lineLimit(1)
-          .truncationMode(.tail)
+          TruncatedText(title).foregroundColor(.primary)
           if subtitle != nil {
-            Text(
-              subtitle!.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-            .font(.footnote).foregroundColor(.primary)
-            .lineLimit(1).truncationMode(.tail)
+            TruncatedText(subtitle!).font(.footnote).foregroundColor(.primary)
           }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)

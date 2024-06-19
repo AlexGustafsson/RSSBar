@@ -16,7 +16,7 @@ struct FeedItemView: View {
         .frame(width: 24, height: 24)
 
       VStack(alignment: .leading) {
-        Text(feed.name) { string in
+        TruncatedText(feed.name) { string in
           if query != "" {
             string.foregroundColor = .secondary
             if let range = string.range(of: query, options: .caseInsensitive) {
@@ -25,7 +25,7 @@ struct FeedItemView: View {
           }
         }
 
-        Text(feed.url.absoluteString) { string in
+        TruncatedText(feed.url.absoluteString) { string in
           if query != "" {
             string.foregroundColor = .secondary
             if let range = string.range(of: query, options: .caseInsensitive) {
