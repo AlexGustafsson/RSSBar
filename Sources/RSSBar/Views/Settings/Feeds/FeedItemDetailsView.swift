@@ -112,8 +112,10 @@ struct FeedItemDetailsView: View {
                   )
                   .foregroundColor(.primary).lineLimit(1)
                   .truncationMode(.tail)
-                  Text(item.date?.formattedDistance(to: Date()) ?? "")
-                    .foregroundColor(.primary).font(.footnote)
+                  if item.date != nil {
+                    Text(item.date!.formattedDistance(to: Date()))
+                      .foregroundColor(.primary).font(.footnote)
+                  }
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 Button {
