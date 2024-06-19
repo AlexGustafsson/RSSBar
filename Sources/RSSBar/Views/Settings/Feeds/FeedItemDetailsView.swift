@@ -102,7 +102,9 @@ struct FeedItemDetailsView: View {
                 Favicon(url: item.url)
                   .frame(width: 24, height: 24)
                 VStack(alignment: .leading) {
-                  Text(item.title).foregroundColor(.primary)
+                  Text(item.title).foregroundColor(.primary).lineLimit(1)
+                    .truncationMode(.tail)
+
                   Text(item.date?.formattedDistance(to: Date()) ?? "")
                     .foregroundColor(.primary).font(.footnote)
                 }
