@@ -105,6 +105,11 @@ struct FeedItemDetailsView: View {
                   Text(
                     item.title.trimmingCharacters(in: .whitespacesAndNewlines)
                   )
+                  .help(
+                    Text(
+                      item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                    )
+                  )
                   .foregroundColor(.primary).lineLimit(1)
                   .truncationMode(.tail)
                   Text(item.date?.formattedDistance(to: Date()) ?? "")

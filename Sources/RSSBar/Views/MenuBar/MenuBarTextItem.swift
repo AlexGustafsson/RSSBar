@@ -18,6 +18,7 @@ struct MenuBarTextItem: View {
           Text(
             title.trimmingCharacters(in: .whitespacesAndNewlines)
           )
+          .help(Text(title.trimmingCharacters(in: .whitespacesAndNewlines)))
           .foregroundColor(.primary).lineLimit(1)
           .truncationMode(.tail)
           if subtitle != nil {
