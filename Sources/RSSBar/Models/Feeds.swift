@@ -10,7 +10,7 @@ enum FeedUpdateInterval: Codable {
 
   var timeInterval: TimeInterval {
     switch self {
-    case .default: return 60 * 60
+    case .default: return 10 * 60
     case .hourly: return 60 * 60
     case .daily: return 24 * 60 * 60
     case .weekly: return 7 * 24 * 60 * 60
