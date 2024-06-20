@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/MenuBar")
 
 struct MenuBarView: View {
   @Environment(\.openWindow) private var openWindow
@@ -8,8 +12,11 @@ struct MenuBarView: View {
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
   @Environment(\.fetchFeeds) private var fetchFeeds
+  @Environment(\.updateIcon) var updateIcon
+  @Environment(\.modelContext) var modelContext
 
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
+  @Query var feedItems: [FeedItem]
 
   @State private var hoveredListItem: Int?
 
@@ -19,6 +26,19 @@ struct MenuBarView: View {
         title: "Fetch now"
       ) {
         Task { await fetchFeeds?(ignoreSchedule: true) }
+      }
+      MenuBarTextItem(
+        title: "Mark all as read"
+      ) {
+        for item in feedItems {
+          item.read = item.read ?? Date()
+        }
+        do {
+          try modelContext.save()
+        } catch {
+          logger.error("Failed to mark all items as read \(error)")
+        }
+        updateIcon?()
       }
 
       Divider()
