@@ -40,14 +40,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Keep feeds up-to-date
     self.timer = Timer.scheduledTimer(
       timeInterval: 5 * 60, target: self,
-      selector: #selector(fetchFeeds), userInfo: nil, repeats: true)
+      selector: #selector(fireTimer), userInfo: nil, repeats: true)
     self.timer!.tolerance = 60
     RunLoop.current.add(self.timer!, forMode: .common)
 
-    // TODO: Crashes with segfault if called here, or in a task or on the main
-    // thread using DispatchQueue.main.schedule or DispatchQueue.main.async
     // Trigger once
-    // self.timer!.fire()
+    self.timer!.fire()
   }
 
   @MainActor func render() {
@@ -62,7 +60,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     AppState.shared.icon = renderer.nsImage
   }
 
-  @objc func fetchFeeds(ignoreSchedule: Bool) async {
+  @objc func fireTimer() {
+    Task {
+      await fetchFeeds(ignoreSchedule: false)
+    }
+  }
+
+  func fetchFeeds(ignoreSchedule: Bool) async {
     let modelContext = ModelContext(self.modelContainer)
 
     guard
