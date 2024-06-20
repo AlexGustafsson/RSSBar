@@ -11,6 +11,11 @@ build:
 run:
 	swift run RSSBar
 
+.PHONY: debug
+# Run the program in debug mode
+debug:
+	swift run --debugger RSSBar
+
 .PHONY: lint
 # Lint all Swift code
 # Requires swift-format: brew install swift-format

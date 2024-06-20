@@ -48,6 +48,11 @@ extension EnvironmentValues {
     get { self[FetchFeedsActionKey.self] }
     set { self[FetchFeedsActionKey.self] = newValue }
   }
+
+  var updateIcon: UpdateIconAction? {
+    get { self[UpdateIconActionKey.self] }
+    set { self[UpdateIconActionKey.self] = newValue }
+  }
 }
 
 struct FetchFeedsAction {
@@ -60,4 +65,16 @@ struct FetchFeedsAction {
 
 private struct FetchFeedsActionKey: EnvironmentKey {
   static var defaultValue: FetchFeedsAction? = nil
+}
+
+struct UpdateIconAction {
+  typealias Action = () -> Void
+  let action: Action
+  func callAsFunction() {
+    action()
+  }
+}
+
+private struct UpdateIconActionKey: EnvironmentKey {
+  static var defaultValue: UpdateIconAction? = nil
 }

@@ -11,6 +11,7 @@ struct MenuBarFeedItem: View {
 
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.modelContext) var modelContext
+  @Environment(\.updateIcon) var updateIcon
 
   @State private var isHovering = false
   @State private var showFeedItems = false
@@ -52,7 +53,12 @@ struct MenuBarFeedItem: View {
                 if item.url != nil {
                   NSWorkspace.shared.open(item.url!)
                   item.read = Date()
-                  try? modelContext.save()
+                  do {
+                    try modelContext.save()
+                  } catch {
+                    logger.error("Failed to mark item as read \(error)")
+                  }
+                  updateIcon?()
                 }
               }
               .opacity(item.read == nil ? 1.0 : 0.6)
@@ -71,6 +77,7 @@ struct MenuBarFeedItem: View {
               logger.error("Failed to mark all items as read \(error)")
             }
             showFeedItems = false
+            updateIcon?()
           }
         }
         .frame(width: 250, height: 250)

@@ -13,6 +13,7 @@ struct AdvancedSettingsView: View {
     true
 
   @Environment(\.modelContext) var modelContext
+  @Environment(\.updateIcon) var updateIcon
 
   var body: some View {
     Form {
@@ -44,6 +45,7 @@ struct AdvancedSettingsView: View {
                 try modelContext.delete(model: Feed.self)
                 try modelContext.delete(model: FeedItem.self)
                 try DiskCache.shared.removeAll()  // TODO: Reset settings to default
+                updateIcon?()
               } catch { logger.error("Failed to clear data") }
             }
             .keyboardShortcut(.delete)

@@ -4,6 +4,9 @@ import SwiftData
 import SwiftUI
 import os
 
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/Settings")
+
 struct FeedItemDetailsView: View {
   @State var feed: Feed
   @State var newName = ""
@@ -16,6 +19,7 @@ struct FeedItemDetailsView: View {
 
   @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
+  @Environment(\.updateIcon) var updateIcon
 
   var body: some View {
     VStack(spacing: 0) {
@@ -113,7 +117,12 @@ struct FeedItemDetailsView: View {
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
                     item.read = Date()
-                    try? modelContext.save()
+                    do {
+                      try modelContext.save()
+                    } catch {
+                      logger.error("Failed to mark item as read \(error)")
+                    }
+                    updateIcon?()
                   }
                 } label: {
                   Image(systemName: "rectangle.portrait.and.arrow.right")
