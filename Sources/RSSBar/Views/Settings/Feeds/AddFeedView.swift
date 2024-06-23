@@ -135,6 +135,13 @@ private struct FormComponent: Decodable {
       )
   }
 
+  func clear() {
+    self.name = ""
+    self.url = ""
+    self.feed = nil
+    self.kv = [:]
+  }
+
   var absoluteUrl: URL? {
     guard let url = URL(string: self.url) else {
       return nil
@@ -219,7 +226,7 @@ struct AddFeedView: View {
                 Button(item.description) {
                   selectedFormItem = item
                   // Clear form key value state
-                  form.kv = [:]
+                  form.clear()
                 }
               }
 
