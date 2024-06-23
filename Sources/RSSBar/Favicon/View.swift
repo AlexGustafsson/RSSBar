@@ -13,6 +13,25 @@ struct Favicon: View {
   @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
     true
 
+  func fetchURL() {
+    if let url {
+      Task {
+        do {
+          favicon = try await CachedFaviconDownloader(
+            underlyingDownloader: BasicFaviconDownloader(),
+            cacheOnly: !enableFaviconsFetching
+          )
+          .downloadPreferred(from: url)
+        } catch {
+          logger.error(
+            "Failed to fetch favicon for \(url, privacy: .public): \(error)")
+        }
+      }
+    } else {
+      self.favicon = nil
+    }
+  }
+
   var body: some View {
     AsyncImage(url: favicon) { image in
       image.resizable()
@@ -39,21 +58,11 @@ struct Favicon: View {
         .frame(
           width: .infinity, height: .infinity)
     )
+    .onChange(of: url) { _, url in
+      fetchURL()
+    }
     .onAppear {
-      Task {
-        if let url {
-          do {
-            favicon = try await CachedFaviconDownloader(
-              underlyingDownloader: BasicFaviconDownloader(),
-              cacheOnly: !enableFaviconsFetching
-            )
-            .downloadPreferred(from: url)
-          } catch {
-            logger.error(
-              "Failed to fetch favicon for \(url, privacy: .public): \(error)")
-          }
-        }
-      }
+      fetchURL()
     }
     .onDisappear {
       // TODO: Cancel download task (decrement number of interested parties as to not stop other favicon)?
