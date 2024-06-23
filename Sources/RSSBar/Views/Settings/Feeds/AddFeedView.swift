@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import RSSKit
 import SwiftData
 import SwiftUI
 import os
@@ -94,25 +95,60 @@ private struct FormComponent: Decodable {
   let examples: [String]
 }
 
-@Observable private class FeedForm: Identifiable {
+@Observable private class FeedForm {
   var name: String = ""
-  var url: String = ""
+  var url: String = "" {
+    didSet { self.urlPublisher.send(url) }
+  }
+  var feed: RSSFeed? = nil
+
   var kv: [String: Any] = [:]
 
-  var absoluteUrl: URL? {
-    return self.isValid ? URL(string: self.url) : nil
+  private var urlPublisher = PassthroughSubject<String, Never>()
+  private var cancelables = Set<AnyCancellable>()
+
+  init() {
+    self.urlPublisher
+      .removeDuplicates()
+      .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
+      .sink { [self] _ in
+        guard let url = self.absoluteUrl else {
+          self.feed = nil
+          return
+        }
+
+        // TODO: Cancel if run again
+        Task {
+          do {
+            self.feed = try await RSSFeed.init(contentsOf: url)
+            if self.name == "" {
+              self.name = self.feed?.title ?? ""
+            }
+          } catch {
+            // TODO: Use typed errors from Swift 6?
+            // TODO: Show errors
+          }
+        }
+      }
+      .store(
+        in: &cancelables
+      )
   }
 
-  var isValid: Bool {
+  var absoluteUrl: URL? {
     guard let url = URL(string: self.url) else {
-      return false
+      return nil
     }
 
     let isHTTP = url.scheme?.hasPrefix("http") ?? false
     let isHTTPS = url.scheme?.hasPrefix("https") ?? false
     let hasDomain = url.host() != nil
 
-    return (isHTTP || isHTTPS) && hasDomain && name != ""
+    return (isHTTP || isHTTPS) && hasDomain ? url : nil
+  }
+
+  var isValid: Bool {
+    return feed != nil && name != ""
   }
 }
 
@@ -133,6 +169,7 @@ struct AddFeedView: View {
   @State var group: FeedGroup
 
   @State private var form: FeedForm = FeedForm()
+  @State private var feed: RSSFeed? = nil
 
   @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
@@ -162,7 +199,7 @@ struct AddFeedView: View {
         Section {
           HStack {
             Favicon(
-              url: form.absoluteUrl,
+              url: form.feed?.url,
               fallbackCharacter: form.name,
               fallbackSystemName: "list.bullet"
             )

@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 private struct SizePreferenceKey: PreferenceKey {
@@ -14,5 +15,24 @@ extension View {
       }
     )
     .onPreferenceChange(SizePreferenceKey.self, perform: onChange)
+  }
+}
+
+extension View {
+  func onChange<V, S>(
+    of value: V,
+    for dueTime: S.SchedulerTimeType.Stride,
+    scheduler: S,
+    options: S.SchedulerOptions? = nil,
+    _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void
+  ) -> some View where V: Equatable, S: Scheduler {
+    // TODO: Do we need to store cancellables?
+    print("mounted")
+    let publisher = PassthroughSubject<V, Error>()
+    publisher.debounce(for: dueTime, scheduler: scheduler, options: options)
+
+    return self.onChange(of: value) {
+      publisher.send(value)
+    }
   }
 }

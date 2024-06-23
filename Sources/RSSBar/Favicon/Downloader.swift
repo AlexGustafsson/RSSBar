@@ -295,6 +295,7 @@ private func parseIconSize(_ value: String?) -> [(Int, Int)] {
 }
 
 // TODO:
+// TODO: Use Combine's debounce or throttle instead for download?
 // @MainActor struct ChunkedFaviconDownloader: FaviconDownloader {
 //   let underlyingDownloader: any FaviconDownloader
 //   let parallelism: Int
