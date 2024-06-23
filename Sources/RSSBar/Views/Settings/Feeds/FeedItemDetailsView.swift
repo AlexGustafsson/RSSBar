@@ -88,9 +88,27 @@ struct FeedItemDetailsView: View {
 
         Section("Actions") {
           List {
+            Button("Mark all as read", role: .destructive) {
+              for item in feed.items {
+                item.read = item.read ?? Date()
+              }
+              do {
+                try modelContext.save()
+              } catch {
+                logger.error("Failed to mark all items as read \(error)")
+              }
+              updateIcon?()
+
+            }
             Button("Clear history", role: .destructive) {
               for item in feed.items { item.read = nil }
-              try? modelContext.save()
+              do {
+                try modelContext.save()
+              } catch {
+                logger.error("Failed to mark all items as read \(error)")
+              }
+              updateIcon?()
+
             }
           }
         }
