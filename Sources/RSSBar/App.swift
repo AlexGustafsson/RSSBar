@@ -55,9 +55,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       predicate: #Predicate { $0.read == nil })
     let count = (try? modelContext.fetchCount(descriptor)) ?? 0
 
-    let renderer = ImageRenderer(content: self.iconView(count: count))
-    renderer.scale = 2.0
-    AppState.shared.icon = renderer.nsImage
+    let resource = Bundle.module.image(
+      forResource: count == 0 ? "icon.svg" : "icon-with-banner.svg")!
+    let ratio = resource.size.height / resource.size.width
+    resource.size.height = 18
+    resource.size.width = 18 / ratio
+    resource.isTemplate = true
+    AppState.shared.icon = resource
   }
 
   @objc func fireTimer() {
@@ -136,24 +140,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     Task {
       await self.render()
     }
-  }
-
-  @ViewBuilder func iconView(count: Int) -> some View {
-    let image: NSImage = {
-      let ratio = $0.size.height / $0.size.width
-      $0.size.height = 18
-      $0.size.width = 18 / ratio
-      $0.isTemplate = true
-      return $0
-    }(Bundle.module.image(forResource: "icon.svg")!)
-
-    ZStack(alignment: .topTrailing) {
-      Image(nsImage: image)
-      if count > 0 {
-        Circle().fill(.red).frame(width: 5, height: 5)
-      }
-    }
-    .frame(width: 18, height: 18)
   }
 }
 

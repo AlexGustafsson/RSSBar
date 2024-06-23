@@ -26,6 +26,7 @@ let package = Package(
       ],
       resources: [
         .copy("Resources/icon.png"), .copy("Resources/icon.svg"),
+        .copy("Resources/icon-with-banner.svg"),
         .copy("Resources/feed-forms.json"),
       ],
       linkerSettings: [
