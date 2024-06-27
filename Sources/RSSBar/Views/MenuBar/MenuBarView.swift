@@ -18,8 +18,6 @@ struct MenuBarView: View {
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
   @Query var feedItems: [FeedItem]
 
-  @State private var hoveredListItem: Int?
-
   var body: some View {
     VStack(alignment: .leading) {
       MenuBarTextItem(
