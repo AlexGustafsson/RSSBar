@@ -17,7 +17,7 @@ struct MenuBarFeedItem: View {
   @State private var showFeedItems = false
 
   var body: some View {
-    Button(action: { if feed.items.count > 0 { showFeedItems = true } }) {
+    Button(action: { showFeedItems = true }) {
       HStack(alignment: .center) {
         Favicon(url: feed.url, fallbackCharacter: feed.name)
           .frame(width: 24, height: 24)
@@ -37,48 +37,55 @@ struct MenuBarFeedItem: View {
         isPresented: $showFeedItems, arrowEdge: .trailing
       ) {
         VStack {
-          List {
-            ForEach(
-              feed.items.sorted(by: {
-                ($0.date ?? Date()) > ($1.date ?? Date())
-              }), id: \.id
-            ) { item in
-              MenuBarTextItem(
-                title: item.title,
-                subtitle: item.date?.formattedDistance(to: Date()),
-                systemName: "rectangle.portrait.and.arrow.right"
-              ) {
-                showFeedItems = false
-                closeMenuBar()
-                if item.url != nil {
-                  NSWorkspace.shared.open(item.url!)
-                  item.read = Date()
-                  do {
-                    try modelContext.save()
-                  } catch {
-                    logger.error("Failed to mark item as read \(error)")
+          if feed.items.count == 0 {
+            Text("No items").frame(maxWidth: .infinity, alignment: .center)
+              .padding(10).font(.callout).foregroundStyle(.secondary)
+              .frame(
+                width: .infinity)
+          } else {
+            List {
+              ForEach(
+                feed.items.sorted(by: {
+                  ($0.date ?? Date()) > ($1.date ?? Date())
+                }), id: \.id
+              ) { item in
+                MenuBarTextItem(
+                  title: item.title,
+                  subtitle: item.date?.formattedDistance(to: Date()),
+                  systemName: "rectangle.portrait.and.arrow.right"
+                ) {
+                  showFeedItems = false
+                  closeMenuBar()
+                  if item.url != nil {
+                    NSWorkspace.shared.open(item.url!)
+                    item.read = Date()
+                    do {
+                      try modelContext.save()
+                    } catch {
+                      logger.error("Failed to mark item as read \(error)")
+                    }
+                    updateIcon?()
                   }
-                  updateIcon?()
                 }
+                .opacity(item.read == nil ? 1.0 : 0.6)
+                .listRowSeparator(.hidden)
               }
-              .opacity(item.read == nil ? 1.0 : 0.6)
-              .listRowSeparator(.hidden)
             }
-          }
-          .listStyle(.plain)
+            .listStyle(.plain)
 
-          Divider()
-          MenuBarTextItem(title: "Mark all as read") {
-            for item in feed.items {
-              item.read = item.read ?? Date()
+            Divider()
+            MenuBarTextItem(title: "Mark all as read") {
+              for item in feed.items {
+                item.read = item.read ?? Date()
+              }
+              do {
+                try modelContext.save()
+              } catch {
+                logger.error("Failed to mark all items as read \(error)")
+              }
+              showFeedItems = false
+              updateIcon?()
             }
-            do {
-              try modelContext.save()
-            } catch {
-              logger.error("Failed to mark all items as read \(error)")
-            }
-            showFeedItems = false
-            updateIcon?()
           }
         }
         .frame(width: 250, height: 250)
