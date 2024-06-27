@@ -7,14 +7,14 @@ struct CountBadge: View {
 
   var body: some View {
     ZStack {
-      Capsule().fill(.primary.opacity(0.2))
+      Capsule().fill(.blue)
         .frame(
           width: size * widthMultplier(), height: size, alignment: .topTrailing)
 
       if value < 100 {
-        Text("\(value)").foregroundColor(.primary).font(Font.caption)
+        Text("\(value)").font(Font.caption)
       } else {
-        Text("99+").foregroundColor(.primary).font(Font.caption)
+        Text("99+").font(Font.caption)
           .frame(
             width: size * widthMultplier(), height: size, alignment: .center)
       }
