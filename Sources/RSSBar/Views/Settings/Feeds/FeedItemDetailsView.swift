@@ -108,8 +108,17 @@ struct FeedItemDetailsView: View {
                 logger.error("Failed to mark all items as read \(error)")
               }
               updateIcon?()
-
             }
+            Button("Clear items", role: .destructive) {
+              feed.items.removeAll()
+              do {
+                try modelContext.save()
+              } catch {
+                logger.error("Failed to mark all items as read \(error)")
+              }
+              updateIcon?()
+            }
+
           }
         }
 
