@@ -7,7 +7,7 @@ struct CountBadge: View {
 
   var body: some View {
     ZStack {
-      Capsule().fill(.primary.opacity(0.1))
+      Capsule().fill(.primary.opacity(0.2))
         .frame(
           width: size * widthMultplier(), height: size, alignment: .topTrailing)
 
@@ -24,7 +24,7 @@ struct CountBadge: View {
 
   func widthMultplier() -> Double {
     if value < 10 {
-      return 1.0
+      return 1.2
     } else if value < 100 {
       return 1.5
     } else {
