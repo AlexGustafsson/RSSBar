@@ -62,6 +62,7 @@ struct MenuBarFeedItem: View {
                 }
               }
               .opacity(item.read == nil ? 1.0 : 0.6)
+              .listRowSeparator(.hidden)
             }
           }
           .listStyle(.plain)
