@@ -47,7 +47,9 @@ struct MenuBarView: View {
           MenuBarSectionHeader(group.name)
         }
         LazyVStack(alignment: .leading, spacing: 0) {
-          ForEach(group.feeds, id: \.id) { feed in MenuBarFeedItem(feed: feed) }
+          ForEach(group.feeds.sorted(by: { $0.order < $1.order }), id: \.id) {
+            feed in MenuBarFeedItem(feed: feed)
+          }
         }
         Divider()
       }

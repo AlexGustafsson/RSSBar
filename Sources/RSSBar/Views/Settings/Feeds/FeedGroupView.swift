@@ -19,12 +19,13 @@ struct FeedGroupView: View {
   @Environment(\.modelContext) var modelContext
 
   var matchedFeeds: [Feed] {
-    return self.group.feeds.filter {
-      let title = $0.name.range(of: self.query, options: .caseInsensitive)
-      let url = $0.url.absoluteString.range(
-        of: query, options: .caseInsensitive)
-      return query == "" || title != nil || url != nil
-    }
+    return self.group.feeds.sorted(by: { $0.order < $1.order })
+      .filter {
+        let title = $0.name.range(of: self.query, options: .caseInsensitive)
+        let url = $0.url.absoluteString.range(
+          of: query, options: .caseInsensitive)
+        return query == "" || title != nil || url != nil
+      }
   }
 
   var body: some View {
