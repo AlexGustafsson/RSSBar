@@ -51,7 +51,7 @@ struct AdvancedSettingsView: View {
             .keyboardShortcut(.delete)
           } message: {
             Text(
-              "The feed will be removed, along with the history of read entries."
+              "All groups, feeds and history will be removed."
             )
           }
           .dialogIcon(Image(systemName: "arrow.clockwise.circle.fill"))
