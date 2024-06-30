@@ -4,6 +4,9 @@ import SwiftData
 import SwiftUI
 import os
 
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/FeedGroupView")
+
 struct FeedGroupView: View {
   @State var group: FeedGroup
   @Binding var query: String
@@ -33,7 +36,10 @@ struct FeedGroupView: View {
       List {
         ForEach(matchedFeeds, id: \.id) { feed in
           FeedItemView(feed: feed, query: $query)
+            .draggable(feed.id)
         }
+        // TODO: Only have onMove and onInsert when there is no search query,
+        // otherwise the order is sort of messed up
         .onMove { from, to in
           withAnimation {
             var s = group.feeds.sorted(by: { $0.order < $1.order })
@@ -44,6 +50,36 @@ struct FeedGroupView: View {
             try? modelContext.save()
           }
         }
+        .onInsert(
+          of: [.persistentIdentifier],
+          perform: { order, items in
+            print(order)
+            for item in items {
+              _ = item.loadTransferable(
+                type: PersistentIdentifier.self,
+                completionHandler: { result in
+                  switch result {
+                  case .success(let id):
+                    withAnimation {
+                      let item = modelContext.model(for: id) as! Feed
+
+                      var s = group.feeds.sorted(by: { $0.order < $1.order })
+                      s.insert(item, at: order)
+                      item.group = group
+                      for (index, item) in s.enumerated() {
+                        item.order = index
+                      }
+                      group.feeds = s
+
+                      try? modelContext.save()
+                    }
+                  case .failure(let error):
+                    logger.debug(
+                      "Failed to perform drop \(error, privacy: .public)")
+                  }
+                })
+            }
+          })
 
         if group.feeds.count == 0 {
           Text("No feeds. Click the context menu below to add one.")
@@ -125,6 +161,10 @@ struct FeedGroupView: View {
           AddFeedView(group: group)
         }
       }
+    }
+    .dropDestination(for: PersistentIdentifier.self) { items, location in
+      print(items)
+      return true
     }
 
   }
