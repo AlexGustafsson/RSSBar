@@ -82,7 +82,7 @@ struct FeedGroupView: View {
             }
           }
           Button("Edit name") { presentEditGroupNamePrompt = true }
-          Button("Delete", role: .destructive) { presentDeleteAlert = true }
+          Button("Delete...", role: .destructive) { presentDeleteAlert = true }
         } label: {
           Image(systemName: "ellipsis")
         }
