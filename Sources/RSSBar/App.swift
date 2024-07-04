@@ -90,8 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             let isOutdated =
               feed.lastUpdated == nil
-              || feed.lastUpdated!.distance(to: Date())
-                > feed.updateInterval.timeInterval
+              || feed.lastUpdated!.distance(to: Date()) > 1 * 60 * 60
             if ignoreSchedule || isOutdated {
               logger.debug(
                 "Updating \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public) (ignoring schedule: \(ignoreSchedule), is outdated: \(isOutdated))"

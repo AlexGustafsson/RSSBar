@@ -11,7 +11,6 @@ struct FeedItemDetailsView: View {
   @State var feed: Feed
   @State var newName = ""
   @State var newURL = ""
-  @State var newUpdateInterval = ""
   @State var editing = false
   @State var presentDeleteAlert = false
 
@@ -70,22 +69,6 @@ struct FeedItemDetailsView: View {
           LabeledContent("Unread items") { Text("\(feed.unreadItemsCount)") }
         }
 
-        Section("Options") {
-          List {
-            if editing {
-              Picker("Update interval", selection: $newUpdateInterval) {
-                Text("Default")
-                Text("Hourly")
-                Text("Daily")
-                Text("Weekly")
-                Text("Monthly")
-              }
-            } else {
-              LabeledContent("Update interval") { Text("Default") }
-            }
-          }
-        }
-
         Section("Actions") {
           List {
             Button("Mark all as read", role: .destructive) {
@@ -98,7 +81,6 @@ struct FeedItemDetailsView: View {
                 logger.error("Failed to mark all items as read \(error)")
               }
               updateIcon?()
-
             }
             Button("Clear history", role: .destructive) {
               for item in feed.items { item.read = nil }
