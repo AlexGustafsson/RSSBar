@@ -18,6 +18,7 @@ struct OpenFileDialog: ViewModifier {
     self._isPresented = isPresented
     self.callback = callback
 
+    // TODO: This slows the time to render the view the first time
     let panel = NSOpenPanel()
     panel.canChooseDirectories = false
     panel.canChooseFiles = true

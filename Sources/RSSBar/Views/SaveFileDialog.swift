@@ -17,6 +17,7 @@ struct SaveFileDialog: ViewModifier {
     self._isPresented = isPresented
     self.callback = callback
 
+    // TODO: This slows the time to render the view the first time
     let panel = NSSavePanel()
     panel.prompt = prompt
     panel.canCreateDirectories = true

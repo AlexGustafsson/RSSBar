@@ -41,37 +41,53 @@ struct FeedGroupView: View {
         // TODO: Only have onMove and onInsert when there is no search query,
         // otherwise the order is sort of messed up
         .onMove { from, to in
-          withAnimation {
-            var s = group.feeds.sorted(by: { $0.order < $1.order })
-            s.move(fromOffsets: from, toOffset: to)
-            for (index, item) in s.enumerated() { item.order = index }
-            group.feeds = s
-
-            try? modelContext.save()
-          }
+          // If a search query has been specified, only a subset of items are
+          // shown. If moving in such a scenario, move relative to the item
+          print(to)
+          print(matchedFeeds.map({$0.order}))
+          let resolvedTo = matchedFeeds.firstIndex(where: {$0.order == to}) ?? (matchedFeeds.count - 1)
+          group.feeds.sort(by: { $0.order < $1.order })
+              group.feeds.move(fromOffsets: from, toOffset: resolvedTo)
+              for (index, item) in group.feeds.enumerated() {
+                item.order = index
+              }
+          try? modelContext.save()
         }
         .onInsert(
           of: [.persistentIdentifier],
           perform: { order, items in
-            print(order)
+            // If a search query has been specified, only a subset of items are
+            // shown. If moving in such a scenario, move relative to the item
+            let resolvedOrder = matchedFeeds.firstIndex(where: {$0.order == order}) ?? (matchedFeeds.count - 1)
             for item in items {
               _ = item.loadTransferable(
                 type: PersistentIdentifier.self,
                 completionHandler: { result in
                   switch result {
                   case .success(let id):
-                    withAnimation {
-                      let item = modelContext.model(for: id) as! Feed
+                    let item = modelContext.model(for: id) as! Feed
 
-                      var s = group.feeds.sorted(by: { $0.order < $1.order })
-                      s.insert(item, at: order)
-                      item.group = group
-                      for (index, item) in s.enumerated() {
-                        item.order = index
-                      }
-                      group.feeds = s
+                    // Remove from current group
+                    if item.group != nil {
+                      item.group!.feeds = item.group!.feeds
+                        .filter { $0.id != id}
+                        .sorted(by: { $0.order < $1.order })
+                        .enumerated()
+                        .map({$0.element.order = $0.offset; return $0.element})
+                      item.group = nil
+                    }
 
-                      try? modelContext.save()
+                    // Update new group
+                    var s = group.feeds.sorted(by: { $0.order < $1.order })
+                    s.insert(item, at: resolvedOrder)
+                    item.group = group
+                    for (index, item) in s.enumerated() {
+                      item.order = index
+                    }
+                    group.feeds = s
+
+                    if modelContext.hasChanges {
+                      // try? modelContext.save()
                     }
                   case .failure(let error):
                     logger.debug(
