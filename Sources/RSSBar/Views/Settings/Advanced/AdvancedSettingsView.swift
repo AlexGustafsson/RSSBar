@@ -10,7 +10,9 @@ private let logger = Logger(
 
 struct AdvancedSettingsView: View {
   @State private var presentResetDialog = false
+  @State private var presentImportConfirmationDialog = false
   @State private var presentImportDialog = false
+  @State private var presentExportDialog = false
   @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
     true
 
@@ -35,30 +37,29 @@ struct AdvancedSettingsView: View {
 
       Section("Data") {
         Button("Export...") {
-          let panel = NSOpenPanel()
-          panel.allowsMultipleSelection = false
-          panel.canChooseDirectories = true
-          panel.canChooseFiles = false
-          panel.prompt = "Export"
-          if panel.runModal() == .OK && panel.url != nil {
-            try? exportModelData(to: panel.url!, modelContext: modelContext)
+          presentExportDialog = true
+        }
+        .saveFileDialog(
+          "Export", fileName: "RSSBar Export.json", isPresented: $presentExportDialog
+        ) {
+          ok, url in
+          if ok {
+            try? exportModelData(to: url!, modelContext: modelContext)
           }
         }
-        Button("Import...") { presentImportDialog = true }
+        Button("Import...") { presentImportConfirmationDialog = true }
           .confirmationDialog(
             "Imported data will replace any existing data. Continue?",
-            isPresented: $presentImportDialog
+            isPresented: $presentImportConfirmationDialog
           ) {
             Button("Continue", role: .destructive) {
-              let panel = NSOpenPanel()
-              panel.allowsMultipleSelection = false
-              panel.canChooseDirectories = false
-              panel.allowedContentTypes = [UTType.json]
-              panel.prompt = "Import"
-              if panel.runModal() == .OK && panel.url != nil {
+              presentImportDialog = true
+            }
+            .keyboardShortcut(.delete)
+            .openFileDialog("Import", allowedContentTypes: [.json], isPresented: $presentImportDialog) { ok, url in
+              if ok {
                 do {
-                  try importModelData(
-                    from: panel.url!, modelContext: modelContext)
+                  try importModelData(from: url!, modelContext: modelContext)
                 } catch {
                   logger.error(
                     "Failed to import data: \(error, privacy: .public)")
@@ -66,7 +67,6 @@ struct AdvancedSettingsView: View {
                 updateIcon?()
               }
             }
-            .keyboardShortcut(.delete)
           } message: {
             Text(
               "All existing groups, feeds and history will be removed."

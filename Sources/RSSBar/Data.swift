@@ -28,20 +28,15 @@ func initializeModelContainer() throws -> ModelContainer {
     configurations: configuration)
 }
 
-func exportModelData(to directory: URL, modelContext: ModelContext) throws {
+func exportModelData(to fileName: URL, modelContext: ModelContext) throws {
   let groups = try modelContext.fetch(FetchDescriptor<FeedGroup>())
 
   let encoder = JSONEncoder()
   encoder.outputFormatting = .prettyPrinted
   let data = try encoder.encode(groups)
 
-  let dateFormatter = DateFormatter()
-  dateFormatter.dateFormat = "yyy-MM-dd-HH-mm-ss"
-
   try data.write(
-    to: directory.appending(
-      component:
-        "rssbar-export-\(dateFormatter.string(for: Date.now)!).json")
+    to: fileName
   )
 }
 
