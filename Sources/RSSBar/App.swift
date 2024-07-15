@@ -15,19 +15,9 @@ class AppState: ObservableObject {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-  public var modelContainer: ModelContainer
   private var timer: Timer?
 
-  override init() {
-    do {
-      self.modelContainer = try initializeModelContainer()
-    } catch {
-      logger.error("Failed to initialize model container \(error)")
-      exit(1)
-    }
-
-    super.init()
-  }
+  private let database: any Database = SharedDatabase.shared.database
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
     logger.info("Started RSSBar")
@@ -49,44 +39,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   @MainActor func render() {
-    let modelContext = ModelContext(self.modelContainer)
+    Task {
+      let count = try await self.database.countUnreadFeeds()
 
-    let descriptor = FetchDescriptor<FeedItem>(
-      predicate: #Predicate { $0.read == nil })
-    let count = (try? modelContext.fetchCount(descriptor)) ?? 0
-
-    let resource = Bundle.module.image(
-      forResource: count == 0 ? "icon.svg" : "icon-with-banner.svg")!
-    let ratio = resource.size.height / resource.size.width
-    resource.size.height = 18
-    resource.size.width = 18 / ratio
-    resource.isTemplate = true
-    AppState.shared.icon = resource
+      let resource = Bundle.module.image(
+        forResource: count == 0 ? "icon.svg" : "icon-with-banner.svg")!
+      let ratio = resource.size.height / resource.size.width
+      resource.size.height = 18
+      resource.size.width = 18 / ratio
+      resource.isTemplate = true
+      AppState.shared.icon = resource
+    }
   }
 
   @objc func fireTimer() {
     Task {
-      await fetchFeeds(ignoreSchedule: false)
+      try await fetchFeeds(ignoreSchedule: false)
     }
   }
 
-  func fetchFeeds(ignoreSchedule: Bool) async {
-    let modelContext = ModelContext(self.modelContainer)
-
-    guard
-      let feedIds = (try? modelContext.fetch(FetchDescriptor<Feed>()))?
-        .map({
-          $0.persistentModelID
-        })
-    else { return }
+  func fetchFeeds(ignoreSchedule: Bool) async throws {
+    let feedIds = try await self.database.feedIds()
 
     for chunk in feedIds.chunked(into: 5) {
-      await withTaskGroup(of: Void.self) { taskGroup in
+      await withThrowingTaskGroup(of: Void.self) { taskGroup in
         for feedId in chunk {
           taskGroup.addTask(operation: {
-            let modelContext = ModelContext(self.modelContainer)
-
-            let feed = modelContext.model(for: feedId) as! Feed
+            guard let feed =
+              try await self.database.fetch(feedId, for: Feed.self) else {
+                return
+              }
 
             let isOutdated =
               feed.lastUpdated == nil
@@ -111,17 +93,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     read: oldItem?.read,
                     url: item.links.first
                   )
-                  newItem.feed = feed
-
-                  modelContext.insert(newItem)
+                  feed.items.append(newItem)
                 }
                 feed.lastUpdated = Date()
-                modelContext.insert(feed)
-                do {
-                  try modelContext.save()
-                } catch {
-                  logger.error("Failed to save new items \(error)")
-                }
                 logger.debug(
                   "Feed updated \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(result.entries.count)"
                 )
@@ -135,6 +109,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
       }
     }
+
+    do {
+      try await self.database.save()
+    } catch {
+      logger.error("Failed to save new items \(error)")
+    }
+
 
     Task {
       await self.render()
@@ -153,12 +134,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   var body: some Scene {
     MenuBarExtra {
       MenuBarView().openSettingsAccess()
-        .modelContainer(appDelegate.modelContainer)
+        .modelContainer(SharedDatabase.shared.modelContainer)
         .environment(
           \.fetchFeeds, FetchFeedsAction(action: appDelegate.fetchFeeds)
         )
         .environment(
-          \.updateIcon, UpdateIconAction(action: appDelegate.render))
+          \.updateIcon, UpdateIconAction(action: appDelegate.render)
+        )
+        .database(SharedDatabase.shared.database)
     } label: {
       if let icon = appState.icon {
         Image(nsImage: icon)
@@ -170,7 +153,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       .defaultPosition(.center)
 
     Settings {
-      SettingsView().modelContainer(appDelegate.modelContainer)
+      SettingsView().modelContainer(SharedDatabase.shared.modelContainer)
         .environment(
           \.fetchFeeds, FetchFeedsAction(action: appDelegate.fetchFeeds)
         )
@@ -179,5 +162,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         .onOpenURL { url in print(url) }
     }
+    .database(SharedDatabase.shared.database)
   }
 }

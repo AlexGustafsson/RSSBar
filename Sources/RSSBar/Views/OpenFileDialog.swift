@@ -54,7 +54,8 @@ extension View {
   {
     modifier(
       OpenFileDialog(
-        prompt, allowedContentTypes: allowedContentTypes, isPresented: isPresented, callback: callback
+        prompt, allowedContentTypes: allowedContentTypes,
+        isPresented: isPresented, callback: callback
       ))
   }
 }

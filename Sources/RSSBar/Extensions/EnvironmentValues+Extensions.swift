@@ -56,10 +56,10 @@ extension EnvironmentValues {
 }
 
 struct FetchFeedsAction {
-  typealias Action = (Bool) async -> Void
+  typealias Action = (Bool) async throws -> Void
   let action: Action
-  func callAsFunction(ignoreSchedule: Bool) async {
-    await action(ignoreSchedule)
+  func callAsFunction(ignoreSchedule: Bool) async throws {
+    try await action(ignoreSchedule)
   }
 }
 

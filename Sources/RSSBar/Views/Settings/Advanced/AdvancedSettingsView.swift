@@ -16,8 +16,9 @@ struct AdvancedSettingsView: View {
   @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
     true
 
-  @Environment(\.modelContext) var modelContext
   @Environment(\.updateIcon) var updateIcon
+
+  @Environment(\.database) private var database
 
   var body: some View {
     Form {
@@ -40,11 +41,14 @@ struct AdvancedSettingsView: View {
           presentExportDialog = true
         }
         .saveFileDialog(
-          "Export", fileName: "RSSBar Export.json", isPresented: $presentExportDialog
+          "Export", fileName: "RSSBar Export.json",
+          isPresented: $presentExportDialog
         ) {
           ok, url in
           if ok {
-            try? exportModelData(to: url!, modelContext: modelContext)
+            Task {
+              try? await database.exportData(to: url!)
+            }
           }
         }
         Button("Import...") { presentImportConfirmationDialog = true }
@@ -56,15 +60,20 @@ struct AdvancedSettingsView: View {
               presentImportDialog = true
             }
             .keyboardShortcut(.delete)
-            .openFileDialog("Import", allowedContentTypes: [.json], isPresented: $presentImportDialog) { ok, url in
+            .openFileDialog(
+              "Import", allowedContentTypes: [.json],
+              isPresented: $presentImportDialog
+            ) { ok, url in
               if ok {
-                do {
-                  try importModelData(from: url!, modelContext: modelContext)
-                } catch {
-                  logger.error(
-                    "Failed to import data: \(error, privacy: .public)")
+                Task {
+                  do {
+                    try await database.importData(from: url!)
+                  } catch {
+                    logger.error(
+                      "Failed to import data: \(error, privacy: .public)")
+                  }
+                  // updateIcon?()
                 }
-                updateIcon?()
               }
             }
           } message: {
@@ -82,14 +91,17 @@ struct AdvancedSettingsView: View {
             isPresented: $presentResetDialog
           ) {
             Button("Reset", role: .destructive) {
-              do {
-                try resetModelData(modelContext: modelContext)
-              } catch {
-                logger.error(
-                  "Failed to reset data: \(error, privacy: .public)")
+              Task {
+                do {
+                  try await database.reset()
+                  try DiskCache.shared.removeAll()
+                } catch {
+                  logger.error(
+                    "Failed to reset data: \(error, privacy: .public)")
+                }
+                // TODO: Reset settings to default
+                // updateIcon?()
               }
-              // TODO: Reset settings to default
-              updateIcon?()
             }
             .keyboardShortcut(.delete)
           } message: {

@@ -9,16 +9,26 @@ private let logger = Logger(
 
 struct FeedItemDetailsView: View {
   @State var feed: Feed
-  @State var newName = ""
-  @State var newURL = ""
-  @State var editing = false
-  @State var presentDeleteAlert = false
 
+  @State private var newName = ""
+  @State private var newURL = ""
+  @State private var editing = false
+  @State private var presentDeleteAlert = false
   @State private var newURLValidated = false
 
-  @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
   @Environment(\.updateIcon) var updateIcon
+  @Environment(\.database) var database
+
+  // Keep a query as the passed feed's items is not updated if they are changed,
+  // for example when marking feed items as read
+  @Query private var feedItems: [FeedItem]
+
+  init(feed: Feed) {
+    self.feed = feed
+    print(feed.id)
+    self._feedItems = Query(filter: #Predicate { $0.feed != nil } )
+  }
 
   var body: some View {
     VStack(spacing: 0) {
@@ -65,55 +75,48 @@ struct FeedItemDetailsView: View {
               TruncatedText(verbatim: feed.url.absoluteString)
             }
           }
-          LabeledContent("Items") { Text("\(feed.items.count)") }
-          LabeledContent("Unread items") { Text("\(feed.unreadItemsCount)") }
+          LabeledContent("Items") { Text("\(feedItems.count)") }
+          LabeledContent("Unread items") { Text("\(feedItems.filter{$0.read == nil}.count)") }
         }
 
         Section("Actions") {
           List {
             Button("Mark all as read", role: .destructive) {
-              for item in feed.items {
-                item.read = item.read ?? Date()
+              Task {
+                try? await database.markAllAsRead(feedId: feed.id)
+                try? await database.save()
+                // updateIcon?()
               }
-              do {
-                try modelContext.save()
-              } catch {
-                logger.error("Failed to mark all items as read \(error)")
-              }
-              updateIcon?()
             }
             Button("Clear history", role: .destructive) {
-              for item in feed.items { item.read = nil }
-              do {
-                try modelContext.save()
-              } catch {
-                logger.error("Failed to mark all items as read \(error)")
+              Task {
+                try? await database.clearHistory(feedId: feed.id)
+                try? await database.save()
+                // updateIcon?()
               }
-              updateIcon?()
             }
             Button("Clear items", role: .destructive) {
-              feed.items.removeAll()
-              do {
-                try modelContext.save()
-              } catch {
-                logger.error("Failed to mark all items as read \(error)")
+              Task {
+                try? await database.clearItems(feedId: feed.id)
+                try? await database.save()
+                // updateIcon?()
               }
-              updateIcon?()
             }
-
+            // TODO: Add a "Fetch now" button
           }
         }
 
         Section("Items") {
           List {
             ForEach(
-              feed.items.sorted(by: {
+              feedItems.sorted(by: {
                 ($0.date ?? Date()) > ($1.date ?? Date())
               }), id: \.id
             ) { item in
               HStack(alignment: .center) {
                 Favicon(url: item.url)
                   .frame(width: 24, height: 24)
+                Text("\(item.feed!.id) \(feed.id)")
                 VStack(alignment: .leading) {
                   TruncatedText(item.title).foregroundColor(.primary)
                   if item.date != nil {
@@ -125,13 +128,11 @@ struct FeedItemDetailsView: View {
                 Button {
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
-                    item.read = Date()
-                    do {
-                      try modelContext.save()
-                    } catch {
-                      logger.error("Failed to mark item as read \(error)")
+                    Task {
+                      try? await database.markAsRead(feedItemId: item.id)
+                      try? await database.save()
+                      // updateIcon?()
                     }
-                    updateIcon?()
                   }
                 } label: {
                   Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -143,7 +144,7 @@ struct FeedItemDetailsView: View {
               }
               .opacity(item.read == nil ? 1.0 : 0.6)
             }
-            if feed.items.count == 0 {
+            if feedItems.count == 0 {
               Text("No items").frame(maxWidth: .infinity, alignment: .center)
                 .padding(10).font(.callout).foregroundStyle(.secondary)
                 .frame(
@@ -164,15 +165,9 @@ struct FeedItemDetailsView: View {
             isPresented: $presentDeleteAlert
           ) {
             Button("Delete feed", role: .destructive) {
-              withAnimation {
-                let group = feed.group!
-                var s = group.feeds.sorted(by: { $0.order < $1.order })
-                s.remove(at: feed.order)
-                for (index, item) in s.enumerated() { item.order = index }
-                group.feeds = s
-
-                try? modelContext.save()
-
+              Task {
+                try? await database.deleteFeed(feedId: feed.id)
+                try? await database.save()
                 dismiss()
               }
             }
@@ -189,13 +184,12 @@ struct FeedItemDetailsView: View {
           .keyboardShortcut(editing ? .cancelAction : nil)
         Button(editing ? "Save" : "Done") {
           if editing {
-            withAnimation {
-              if newName != "" { feed.name = newName }
-              if newURL != "" { feed.url = URL(string: newURL)! }
-              // TODO: Update interval
-              try? modelContext.save()
+            if newName != "" { feed.name = newName }
+            if newURL != "" { feed.url = URL(string: newURL)! }
+            Task {
+              try? await database.save()
+              editing = !editing
             }
-            editing = !editing
           } else {
             dismiss()
           }

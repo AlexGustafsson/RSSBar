@@ -178,9 +178,9 @@ struct AddFeedView: View {
   @State private var form: FeedForm = FeedForm()
   @State private var feed: RSSFeed? = nil
 
-  @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
   @Environment(\.fetchFeeds) var fetchFeeds
+  @Environment(\.database) var database
 
   @State private var forms: FormsDescription
   @State private var selectedFormItem: FormItem
@@ -260,15 +260,14 @@ struct AddFeedView: View {
         }
         .keyboardShortcut(.cancelAction)
         Button("Add") {
-          withAnimation {
-            let feed = Feed(name: form.name, url: form.absoluteUrl!)
-            var s = group.feeds.sorted(by: { $0.order < $1.order })
-            s.append(feed)
-            for (index, item) in s.enumerated() { item.order = index }
-            group.feeds = s
-            try? modelContext.save()
+          Task {
+            try? await database.addFeed(
+              groupId: group.id,
+              feed: Feed(name: form.name, url: form.absoluteUrl!))
+            // TODO: seems broken - freezes app
+            try? await database.save()
             dismiss()
-            Task { await fetchFeeds?(ignoreSchedule: false) }
+            try? await fetchFeeds?(ignoreSchedule: false)
           }
         }
         .keyboardShortcut(.defaultAction)
