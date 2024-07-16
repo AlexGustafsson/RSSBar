@@ -22,7 +22,9 @@ public struct CloseMenuBarAction {
 }
 
 public struct QuitAppAction {
-  @MainActor public func callAsFunction() { NSApplication.shared.terminate(nil) }
+  @MainActor public func callAsFunction() {
+    NSApplication.shared.terminate(nil)
+  }
 }
 
 extension NSStatusItem {
@@ -56,5 +58,7 @@ struct UpdateIconAction: Sendable {
 }
 
 private struct UpdateIconActionKey: EnvironmentKey {
-  static let defaultValue: UpdateIconAction = UpdateIconAction(action: {assertionFailure("Update icon action not set")})
+  static let defaultValue: UpdateIconAction = UpdateIconAction(action: {
+    assertionFailure("Update icon action not set")
+  })
 }

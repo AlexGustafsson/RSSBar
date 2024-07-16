@@ -119,7 +119,7 @@ private struct FormComponent: Decodable {
 
         // TODO: Cancel if run again
         Task {
-         do {
+          do {
             self.feed = try await RSSFeed.init(contentsOf: url)
             if self.name == "" {
               self.name = self.feed?.title ?? ""

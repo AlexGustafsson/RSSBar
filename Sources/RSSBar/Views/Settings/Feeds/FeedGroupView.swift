@@ -44,7 +44,8 @@ struct FeedGroupView: View {
         // If a search query has been specified, only a subset of items are
         // shown. If moving in such a scenario, move relative to the item
         .onMove { from, to in
-          try? modelContext.moveFeedInGroup(groupId: group.id, from: from, to: to)
+          try? modelContext.moveFeedInGroup(
+            groupId: group.id, from: from, to: to)
           try? modelContext.save()
         }
         .onInsert(
@@ -67,7 +68,8 @@ struct FeedGroupView: View {
                     // The completion handler is run in a different thread,
                     // create a new context
                     let modelContext = ModelContext(modelContainer)
-                    try? modelContext.changeFeedGroup(feedId: id, toGroup: groupId, at: order)
+                    try? modelContext.changeFeedGroup(
+                      feedId: id, toGroup: groupId, at: order)
                     try? modelContext.save()
                   case .failure(let error):
                     logger.debug(
