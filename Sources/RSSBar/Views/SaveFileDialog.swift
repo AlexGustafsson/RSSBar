@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct SaveFileDialog: ViewModifier {
-  var prompt: String
+  let prompt: String
+  let fileName: String?
   @Binding var isPresented: Bool
-  var callback: (_ ok: Bool, _ url: URL?) -> Void
-
-  let panel: NSSavePanel
+  let callback: (_ ok: Bool, _ url: URL?) -> Void
 
   init(
     _ prompt: String,
@@ -14,25 +13,23 @@ struct SaveFileDialog: ViewModifier {
     callback: @escaping (_ ok: Bool, _ url: URL?) -> Void
   ) {
     self.prompt = prompt
+    self.fileName = fileName
     self._isPresented = isPresented
     self.callback = callback
-
-    // TODO: This slows the time to render the view the first time
-    let panel = NSSavePanel()
-    panel.prompt = prompt
-    panel.canCreateDirectories = true
-    panel.nameFieldStringValue = fileName ?? ""
-    self.panel = panel
   }
 
   func body(content: Content) -> some View {
     content.onChange(of: isPresented) {
       if isPresented {
-        let result = panel.runModal()
-        callback(result == .OK, panel.url)
-        isPresented = false
-      } else {
-        panel.close()
+        DispatchQueue.main.schedule {
+          let panel = NSSavePanel()
+          panel.prompt = prompt
+          panel.canCreateDirectories = true
+          panel.nameFieldStringValue = fileName ?? ""
+          let result = panel.runModal()
+          callback(result == .OK, panel.url)
+          isPresented = false
+        }
       }
     }
   }
