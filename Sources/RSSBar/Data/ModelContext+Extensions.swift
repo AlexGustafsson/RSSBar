@@ -258,19 +258,21 @@ extension ModelContext {
       })
 
     // Sort items to ensure insert order
-    targetGroup.feeds.sort(by: { $0.order < $1.order })
+    var feeds = targetGroup.feeds.sorted(by: { $0.order < $1.order })
 
     // Add to new group
     if targetIndex == nil {
-      targetGroup.feeds.append(feed)
+      feeds.append(feed)
     } else {
-      targetGroup.feeds.insert(feed, at: targetIndex!)
+      feeds.insert(feed, at: targetIndex!)
     }
 
     // Update order
-    for (index, item) in targetGroup.feeds.enumerated() {
+    for (index, item) in feeds.enumerated() {
       item.order = index
     }
+
+    targetGroup.feeds = feeds
   }
 
   func feedIds() throws -> [PersistentIdentifier] {
