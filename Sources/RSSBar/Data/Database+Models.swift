@@ -1,10 +1,15 @@
 import SwiftData
 import SwiftUI
+import os
+
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "Database")
 
 extension Database {
   public func moveFeedInGroup(
     groupId: PersistentIdentifier, from: IndexSet, to: Int
   ) async throws {
+    logger.debug("Moving feed in group: \(groupId.description(), privacy: .public) from \(from, privacy: .public) to \(to, privacy: .public)")
     // let group = try await self.fetch(groupId) as! FeedGroup
 
     // // Let's update the order of all items to make sure the values never leave
@@ -21,6 +26,7 @@ extension Database {
   public func moveGroup(groupId: PersistentIdentifier, positions: Int)
     async throws
   {
+    logger.debug("Moving group: \(groupId.description(), privacy: .public) \(positions, privacy: .public) positions")
     var groups = try await self.fetch(FetchDescriptor<FeedGroup>())
       .sorted(by: { $0.order < $1.order })
     let groupIndex = groups.firstIndex { $0.id == groupId }!
@@ -33,6 +39,7 @@ extension Database {
   }
 
   public func countUnreadFeeds() async throws -> Int {
+    logger.debug("Counting unread feeds")
     let descriptor = FetchDescriptor<FeedItem>(
       predicate: #Predicate { $0.read == nil })
     let count = try await self.fetchCount(descriptor)
@@ -40,6 +47,7 @@ extension Database {
   }
 
   public func markAllAsRead(feedId: PersistentIdentifier) async throws {
+    logger.debug("Marking feed as read: \(feedId.description(), privacy: .public)")
     guard let feed = try await self.fetch(feedId, for: Feed.self) else {
       return
     }
@@ -51,6 +59,7 @@ extension Database {
   }
 
   public func markAllAsRead() async throws {
+    logger.debug("Marking all feeds as read")
     let feeds = try await self.fetch(FetchDescriptor<FeedItem>())
     for item in feeds {
       if item.read == nil {
@@ -60,6 +69,7 @@ extension Database {
   }
 
   public func markAsRead(feedItemId: PersistentIdentifier) async throws {
+    logger.debug("Marking feed item as read: \(feedItemId.description(), privacy: .public)")
     guard let item = try await self.fetch(feedItemId, for: FeedItem.self) else {
       return
     }
@@ -67,6 +77,7 @@ extension Database {
   }
 
   public func addFeed(groupId: PersistentIdentifier, feed: Feed) async throws {
+    logger.debug("Adding feed to group: \(groupId.description(), privacy: .public)")
     guard let group = try await self.fetch(groupId, for: FeedGroup.self)  else {
       return
     }
@@ -76,6 +87,7 @@ extension Database {
   }
 
   public func deleteFeed(feedId: PersistentIdentifier) async throws {
+    logger.debug("Deleting feed: \(feedId.description(), privacy: .public)")
     guard let feed = try await self.fetch(feedId, for: Feed.self) else {
       return
     }
@@ -90,6 +102,7 @@ extension Database {
   }
 
   public func addGroup(name: String) async throws {
+    logger.debug("Adding group")
     let groupCount = try await self.fetchCount(FetchDescriptor<FeedGroup>())
     let group = FeedGroup(name: name)
     group.order = groupCount
@@ -97,6 +110,7 @@ extension Database {
   }
 
   public func clearHistory(feedId: PersistentIdentifier) async throws {
+    logger.debug("Clearing history for feed: \(feedId.description(), privacy: .public)")
     guard let feed = try await self.fetch(feedId, for: Feed.self) else {
       return
     }
@@ -104,6 +118,7 @@ extension Database {
   }
 
   public func clearItems(feedId: PersistentIdentifier) async throws {
+    logger.debug("Clearing items for feed: \(feedId.description(), privacy: .public)")
     guard let feed = try await self.fetch(feedId, for: Feed.self) else {
       return
     }
@@ -114,6 +129,7 @@ extension Database {
   }
 
   public func exportData(to fileName: URL) async throws {
+    logger.debug("Exporting data")
     let groups = try await self.fetch(FetchDescriptor<FeedGroup>())
 
     let encoder = JSONEncoder()
@@ -126,6 +142,7 @@ extension Database {
   }
 
   public func importData(from path: URL) async throws {
+    logger.debug("Importing data")
     let decoder = JSONDecoder()
 
     let groups = try decoder.decode(
@@ -160,6 +177,7 @@ extension Database {
   }
 
   public func reset() async throws {
+    logger.debug("Resetting database")
     try await self.transaction { modelContext in
       // NOTE: Should coalesce delete on FeedGroup and Feed, but let's
       // make sure all potential dangling items are deleted as well
@@ -175,6 +193,7 @@ extension Database {
     feedId: PersistentIdentifier, toGroup groupId: PersistentIdentifier,
     at targetIndex: Int?
   ) async throws {
+    logger.debug("Changing feed group for \(feedId.description(), privacy: .public) to \(groupId.description(), privacy: .public)")
     guard let feed = try await self.fetch(feedId, for: Feed.self) else {
       return
     }
@@ -207,6 +226,7 @@ extension Database {
   }
 
   public func feedIds() async throws -> [PersistentIdentifier] {
+    logger.debug("Fetching feed ids")
     return try await SharedDatabase.shared.database
         .fetch(FetchDescriptor<Feed>())
         .map({

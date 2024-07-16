@@ -20,14 +20,13 @@ struct FeedItemDetailsView: View {
   @Environment(\.updateIcon) var updateIcon
   @Environment(\.database) var database
 
-  // Keep a query as the passed feed's items is not updated if they are changed,
-  // for example when marking feed items as read
+  // Keep a query as the passed feed's items are not updated if they are
+  // changed, for example when marking feed items as read
   @Query private var feedItems: [FeedItem]
 
   init(feed: Feed) {
     self.feed = feed
-    print(feed.id)
-    self._feedItems = Query(filter: #Predicate { $0.feed != nil } )
+    self._feedItems = Query(filter: #Predicate { $0.feed!.id == feed.id } )
   }
 
   var body: some View {
@@ -75,31 +74,46 @@ struct FeedItemDetailsView: View {
               TruncatedText(verbatim: feed.url.absoluteString)
             }
           }
-          LabeledContent("Items") { Text("\(feedItems.count)") }
-          LabeledContent("Unread items") { Text("\(feedItems.filter{$0.read == nil}.count)") }
+          LabeledContent("Items") { Text("\(feed.items.count)") }
+          LabeledContent("Unread items") { Text("\(feed.items.filter{$0.read == nil}.count)") }
         }
 
         Section("Actions") {
           List {
             Button("Mark all as read", role: .destructive) {
               Task {
-                try? await database.markAllAsRead(feedId: feed.id)
-                try? await database.save()
-                // updateIcon?()
+                do {
+                  try await database.markAllAsRead(feedId: feed.id)
+                  try await database.save()
+                  logger.debug("Marked all items as read: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)")
+                  // updateIcon?()
+                } catch {
+                  logger.error("Failed to mark all feed items as read: \(error, privacy: .public)")
+                }
               }
             }
             Button("Clear history", role: .destructive) {
               Task {
-                try? await database.clearHistory(feedId: feed.id)
-                try? await database.save()
-                // updateIcon?()
+                do {
+                  try await database.clearHistory(feedId: feed.id)
+                  try await database.save()
+                  logger.debug("Cleared feed history: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)")
+                  // updateIcon?()
+                } catch {
+                  logger.error("Failed to clear feed history: \(error, privacy: .public)")
+                }
               }
             }
             Button("Clear items", role: .destructive) {
               Task {
-                try? await database.clearItems(feedId: feed.id)
-                try? await database.save()
-                // updateIcon?()
+                do {
+                  try await database.clearItems(feedId: feed.id)
+                  try await database.save()
+                  logger.debug("Cleared items: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)")
+                  // updateIcon?()
+                } catch {
+                  logger.error("Failed clear feed items: \(error, privacy: .public)")
+                }
               }
             }
             // TODO: Add a "Fetch now" button
@@ -109,14 +123,13 @@ struct FeedItemDetailsView: View {
         Section("Items") {
           List {
             ForEach(
-              feedItems.sorted(by: {
+              feed.items.sorted(by: {
                 ($0.date ?? Date()) > ($1.date ?? Date())
               }), id: \.id
             ) { item in
               HStack(alignment: .center) {
                 Favicon(url: item.url)
                   .frame(width: 24, height: 24)
-                Text("\(item.feed!.id) \(feed.id)")
                 VStack(alignment: .leading) {
                   TruncatedText(item.title).foregroundColor(.primary)
                   if item.date != nil {

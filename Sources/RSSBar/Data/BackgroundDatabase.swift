@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-public class BackgroundDatabase: Database {
+public final class BackgroundDatabase: Database {
   private actor DatabaseContainer {
     private let factory: @Sendable () -> any Database
     private var wrappedTask: Task<any Database, Never>?
