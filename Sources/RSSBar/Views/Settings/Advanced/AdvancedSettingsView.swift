@@ -18,7 +18,7 @@ struct AdvancedSettingsView: View {
 
   @Environment(\.updateIcon) var updateIcon
 
-  @Environment(\.database) private var database
+  @Environment(\.modelContext) private var modelContext
 
   var body: some View {
     Form {
@@ -46,9 +46,7 @@ struct AdvancedSettingsView: View {
         ) {
           ok, url in
           if ok {
-            Task {
-              try? await database.exportData(to: url!)
-            }
+            try? modelContext.exportData(to: url!)
           }
         }
         Button("Import...") { presentImportConfirmationDialog = true }
@@ -65,15 +63,13 @@ struct AdvancedSettingsView: View {
               isPresented: $presentImportDialog
             ) { ok, url in
               if ok {
-                Task {
-                  do {
-                    try await database.importData(from: url!)
-                  } catch {
-                    logger.error(
-                      "Failed to import data: \(error, privacy: .public)")
-                  }
-                  // updateIcon?()
+                do {
+                  try modelContext.importData(from: url!)
+                } catch {
+                  logger.error(
+                    "Failed to import data: \(error, privacy: .public)")
                 }
+                // updateIcon?()
               }
             }
           } message: {
@@ -91,17 +87,15 @@ struct AdvancedSettingsView: View {
             isPresented: $presentResetDialog
           ) {
             Button("Reset", role: .destructive) {
-              Task {
-                do {
-                  try await database.reset()
-                  try DiskCache.shared.removeAll()
-                } catch {
-                  logger.error(
-                    "Failed to reset data: \(error, privacy: .public)")
-                }
-                // TODO: Reset settings to default
-                // updateIcon?()
+              do {
+                try modelContext.reset()
+                try DiskCache.shared.removeAll()
+              } catch {
+                logger.error(
+                  "Failed to reset data: \(error, privacy: .public)")
               }
+              // TODO: Reset settings to default
+              // updateIcon?()
             }
             .keyboardShortcut(.delete)
           } message: {

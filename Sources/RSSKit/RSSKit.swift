@@ -10,7 +10,7 @@ enum RSSError: Error {
   case unexpectedStatusCode(Int)
 }
 
-public struct RSSFeed: Equatable, Identifiable {
+public struct RSSFeed: Equatable, Identifiable, Sendable {
   public var url: URL
   public var title: String?
   public var updated: Date?
@@ -116,7 +116,7 @@ public struct RSSFeed: Equatable, Identifiable {
   public var id: String { return self.url.absoluteString }
 }
 
-public struct RSSFeedEntry: Equatable, Identifiable {
+public struct RSSFeedEntry: Equatable, Identifiable, Sendable {
   public var id: String
   public var title: String?
   public var links: [URL]

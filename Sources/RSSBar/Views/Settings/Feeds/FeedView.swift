@@ -4,7 +4,7 @@ import SwiftData
 import SwiftUI
 import os
 
-struct FeedItemView: View {
+struct FeedView: View {
   @State var feed: Feed
   @Binding var query: String
 
@@ -49,7 +49,7 @@ struct FeedItemView: View {
       .sheet(isPresented: $shouldPresentSheet) {
         // Do noting
       } content: {
-        FeedItemDetailsView(feed: feed)
+        FeedDetailsView(feed: feed)
       }
     }
     .padding(4)

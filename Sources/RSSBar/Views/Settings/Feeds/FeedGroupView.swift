@@ -19,23 +19,24 @@ struct FeedGroupView: View {
 
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
 
-  @Environment(\.database) private var database
+  @Environment(\.modelContext) private var modelContext
 
   var matchedFeeds: [Feed] {
-    return self.group.feeds.sorted(by: { $0.order < $1.order })
+    return self.group.feeds
       .filter {
         let title = $0.name.range(of: self.query, options: .caseInsensitive)
         let url = $0.url.absoluteString.range(
           of: query, options: .caseInsensitive)
         return query == "" || title != nil || url != nil
       }
+      .sorted(by: { $0.order < $1.order })
   }
 
   var body: some View {
     Section(group.name) {
       List {
         ForEach(matchedFeeds, id: \.id) { feed in
-          FeedItemView(feed: feed, query: $query)
+          FeedView(feed: feed, query: $query)
             .draggable(feed.id)
         }
         // TODO: Only have onMove and onInsert when there is no search query,
@@ -43,14 +44,8 @@ struct FeedGroupView: View {
         // If a search query has been specified, only a subset of items are
         // shown. If moving in such a scenario, move relative to the item
         .onMove { from, to in
-          Task {
-            do {
-              try await database.moveFeedInGroup(groupId: group.id, from: from, to: to)
-              try await database.save()
-            } catch {
-              print("Error \(error)")
-            }
-          }
+          try? modelContext.moveFeedInGroup(groupId: group.id, from: from, to: to)
+          try? modelContext.save()
         }
         .onInsert(
           of: [.persistentIdentifier],
@@ -58,15 +53,22 @@ struct FeedGroupView: View {
             // If a search query has been specified, only a subset of items are
             // shown. If moving in such a scenario, move relative to the item
             // let resolvedOrder = matchedFeeds.firstIndex(where: {$0.order == order}) ?? (matchedFeeds.count - 1)
+
+            // Store sendable primitives so we don't need to access self from
+            // the completion handler's thread
+            let groupId = group.id
+            let modelContainer = modelContext.container
             for item in items {
               _ = item.loadTransferable(
                 type: PersistentIdentifier.self,
                 completionHandler: { result in
                   switch result {
                   case .success(let id):
-                    Task {
-                      try? await database.changeFeedGroup(feedId: id, toGroup: group.id, at: order)
-                    }
+                    // The completion handler is run in a different thread,
+                    // create a new context
+                    let modelContext = ModelContext(modelContainer)
+                    try? modelContext.changeFeedGroup(feedId: id, toGroup: groupId, at: order)
+                    try? modelContext.save()
                   case .failure(let error):
                     logger.debug(
                       "Failed to perform drop \(error, privacy: .public)")
@@ -92,18 +94,14 @@ struct FeedGroupView: View {
           Button("Add feed") { shouldPresentSheet = true }
           if group.order > 0 {
             Button("Move up") {
-              Task {
-                try? await database.moveGroup(groupId: group.id, positions: -1)
-                try? await database.save()
-              }
+              try? modelContext.moveGroup(groupId: group.id, positions: -1)
+              try? modelContext.save()
             }
           }
           if group.order < groups.count - 1 {
             Button("Move down") {
-             Task {
-                try? await database.moveGroup(groupId: group.id, positions: +2)
-                try? await database.save()
-              }
+              try? modelContext.moveGroup(groupId: group.id, positions: +2)
+              try? modelContext.save()
             }
           }
           Button("Edit name") { presentEditGroupNamePrompt = true }
@@ -117,10 +115,8 @@ struct FeedGroupView: View {
           isPresented: $presentDeleteAlert
         ) {
           Button("Delete group", role: .destructive) {
-            Task {
-              await database.delete(group)
-              try? await database.save()
-            }
+            modelContext.delete(group)
+            try? modelContext.save()
           }
           .keyboardShortcut(.delete)
         } message: {
@@ -135,9 +131,7 @@ struct FeedGroupView: View {
           TextField("Name", text: $newGroupName, prompt: Text(group.name))
           Button("OK") {
             group.name = newGroupName
-            Task {
-              try? await database.save()
-            }
+            try? modelContext.save()
           }
           .keyboardShortcut(.defaultAction)
           Button("Cancel", role: .cancel) {

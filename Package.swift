@@ -30,8 +30,8 @@ let package = Package(
         .copy("Resources/feed-forms.json"),
       ],
       swiftSettings: [
-        .enableExperimentalFeature("StrictConcurrency=minimal")
-    ],
+        .enableExperimentalFeature("StrictConcurrency=complete")
+      ],
       linkerSettings: [
         .unsafeFlags([
           "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker",
@@ -46,8 +46,8 @@ let package = Package(
       ], resources: [.copy("Resources/atom.xsd"), .copy("Resources/rss2.xsd")],
       swiftSettings: [
         .enableExperimentalFeature("StrictConcurrency=complete")
-    ]
-      ),
+      ]
+    ),
     .testTarget(
       name: "RSSKitTests",
       dependencies: [

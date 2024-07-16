@@ -57,7 +57,7 @@ private struct FormItemView: View {
 
   @State var i = Int.random(in: 0...50)
 
-  private func updateForm() {
+  @MainActor private func updateForm() {
     self.form.url =
       URLTemplate.render(
         self.formItem.template, with: self.form.kv) ?? ""
@@ -119,12 +119,13 @@ private struct FormComponent: Decodable {
 
         // TODO: Cancel if run again
         Task {
-          do {
+         do {
             self.feed = try await RSSFeed.init(contentsOf: url)
             if self.name == "" {
               self.name = self.feed?.title ?? ""
             }
           } catch {
+            print(error)
             // TODO: Use typed errors from Swift 6?
             // TODO: Show errors
           }
@@ -179,8 +180,7 @@ struct AddFeedView: View {
   @State private var feed: RSSFeed? = nil
 
   @Environment(\.dismiss) var dismiss
-  @Environment(\.fetchFeeds) var fetchFeeds
-  @Environment(\.database) var database
+  @Environment(\.modelContext) var modelContext
 
   @State private var forms: FormsDescription
   @State private var selectedFormItem: FormItem
@@ -260,14 +260,19 @@ struct AddFeedView: View {
         }
         .keyboardShortcut(.cancelAction)
         Button("Add") {
+          try? modelContext.addFeed(
+            groupId: group.id,
+            feed: Feed(name: form.name, url: form.absoluteUrl!))
+          // TODO: seems broken - freezes app
+          try? modelContext.save()
+          dismiss()
+          // Seems to crash if running this:
+          // Perhaps only schedule from any thread, but have a single thread
+          // actually doing the fetching? It's weird, because the fetch all
+          // in the menu bar seems to work alright
           Task {
-            try? await database.addFeed(
-              groupId: group.id,
-              feed: Feed(name: form.name, url: form.absoluteUrl!))
-            // TODO: seems broken - freezes app
-            try? await database.save()
-            dismiss()
-            try? await fetchFeeds?(ignoreSchedule: false)
+            let fetcher = FeedFetcher(modelContainer: modelContext.container)
+            try await fetcher.fetchFeeds()
           }
         }
         .keyboardShortcut(.defaultAction)

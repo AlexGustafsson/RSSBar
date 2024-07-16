@@ -9,7 +9,7 @@ struct FeedsSettingsView: View {
   @State var newName: String = ""
   @State var query: String = ""
 
-  @Environment(\.database) var database
+  @Environment(\.modelContext) var modelContext
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
   @Query(sort: \Feed.name) var feeds: [Feed]
 
@@ -35,10 +35,8 @@ struct FeedsSettingsView: View {
           .alert("Add new group", isPresented: $presentPrompt) {
             TextField("Name", text: $newName, prompt: Text("Group name"))
             Button("OK") {
-              Task {
-                try? await database.addGroup(name: newName)
-                try? await database.save()
-              }
+              try? modelContext.addGroup(name: newName)
+              try? modelContext.save()
             }
             .keyboardShortcut(.defaultAction)
             Button("Cancel", role: .cancel) {

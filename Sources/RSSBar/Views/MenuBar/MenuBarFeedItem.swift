@@ -11,7 +11,7 @@ struct MenuBarFeedItem: View {
 
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.updateIcon) var updateIcon
-  @Environment(\.database) var database
+  @Environment(\.modelContext) var modelContext
 
   @State private var isHovering = false
   @State private var showFeedItems = false
@@ -58,11 +58,9 @@ struct MenuBarFeedItem: View {
                   closeMenuBar()
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
-                    Task {
-                      try? await database.markAsRead(feedItemId: item.id)
-                      try? await database.save()
-                      // updateIcon?()
-                    }
+                    try? modelContext.markAsRead(feedItemId: item.id)
+                    try? modelContext.save()
+                    // updateIcon?()
                   }
                 }
                 .opacity(item.read == nil ? 1.0 : 0.6)
@@ -73,12 +71,10 @@ struct MenuBarFeedItem: View {
 
             Divider()
             MenuBarTextItem(title: "Mark all as read") {
-              Task {
-                try? await database.markAllAsRead(feedId: feed.id)
-                try? await database.save()
-                showFeedItems = false
-                // updateIcon?()
-              }
+              try? modelContext.markAllAsRead(feedId: feed.id)
+              try? modelContext.save()
+              showFeedItems = false
+              // updateIcon?()
             }
           }
         }
