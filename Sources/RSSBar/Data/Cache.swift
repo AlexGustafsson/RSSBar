@@ -12,7 +12,7 @@ protocol Cache<Key, Value> {
   func remove(forKey key: Key) throws
 }
 
-class DiskCache: Cache {
+final class DiskCache: Cache, Sendable {
   typealias Key = String
   typealias Value = Data
 

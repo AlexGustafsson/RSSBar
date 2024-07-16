@@ -7,18 +7,18 @@ import os
 private let logger = Logger(
   subsystem: Bundle.main.bundleIdentifier!, category: "UI/Settings")
 
-struct FeedItemDetailsView: View {
+struct FeedDetailsView: View {
   @State var feed: Feed
-  @State var newName = ""
-  @State var newURL = ""
-  @State var editing = false
-  @State var presentDeleteAlert = false
 
+  @State private var newName = ""
+  @State private var newURL = ""
+  @State private var editing = false
+  @State private var presentDeleteAlert = false
   @State private var newURLValidated = false
 
-  @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
   @Environment(\.updateIcon) var updateIcon
+  @Environment(\.modelContext) var modelContext
 
   var body: some View {
     VStack(spacing: 0) {
@@ -66,41 +66,63 @@ struct FeedItemDetailsView: View {
             }
           }
           LabeledContent("Items") { Text("\(feed.items.count)") }
-          LabeledContent("Unread items") { Text("\(feed.unreadItemsCount)") }
+          LabeledContent("Unread items") {
+            Text("\(feed.items.filter{$0.read == nil}.count)")
+          }
         }
 
         Section("Actions") {
           List {
-            Button("Mark all as read", role: .destructive) {
-              for item in feed.items {
-                item.read = item.read ?? Date()
-              }
+            Button("Mark all as read") {
               do {
+                try modelContext.markAllAsRead(feedId: feed.id)
                 try modelContext.save()
+                logger.debug(
+                  "Marked all items as read: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
+                )
+                // updateIcon?()
               } catch {
-                logger.error("Failed to mark all items as read \(error)")
+                logger.error(
+                  "Failed to mark all feed items as read: \(error, privacy: .public)"
+                )
               }
-              updateIcon?()
             }
             Button("Clear history", role: .destructive) {
-              for item in feed.items { item.read = nil }
               do {
+                try modelContext.clearHistory(feedId: feed.id)
                 try modelContext.save()
+                logger.debug(
+                  "Cleared feed history: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
+                )
+                // updateIcon?()
               } catch {
-                logger.error("Failed to mark all items as read \(error)")
+                logger.error(
+                  "Failed to clear feed history: \(error, privacy: .public)")
               }
-              updateIcon?()
             }
             Button("Clear items", role: .destructive) {
-              feed.items.removeAll()
               do {
+                try modelContext.clearItems(feedId: feed.id)
                 try modelContext.save()
+                logger.debug(
+                  "Cleared items: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
+                )
+                // updateIcon?()
               } catch {
-                logger.error("Failed to mark all items as read \(error)")
+                logger.error(
+                  "Failed clear feed items: \(error, privacy: .public)")
               }
-              updateIcon?()
             }
-
+            Button("Fetch now") {
+              // TODO: Doesn't seem to update the list of feed items
+              let feedId = feed.id
+              Task {
+                let fetcher = FeedFetcher(
+                  modelContainer: modelContext.container)
+                try await fetcher.fetchFeed(feedId: feedId, if: .unconditional)
+              }
+              // updateIcon?()
+            }
           }
         }
 
@@ -125,13 +147,9 @@ struct FeedItemDetailsView: View {
                 Button {
                   if item.url != nil {
                     NSWorkspace.shared.open(item.url!)
-                    item.read = Date()
-                    do {
-                      try modelContext.save()
-                    } catch {
-                      logger.error("Failed to mark item as read \(error)")
-                    }
-                    updateIcon?()
+                    try? modelContext.markAsRead(feedItemId: item.id)
+                    try? modelContext.save()
+                    // updateIcon?()
                   }
                 } label: {
                   Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -164,17 +182,9 @@ struct FeedItemDetailsView: View {
             isPresented: $presentDeleteAlert
           ) {
             Button("Delete feed", role: .destructive) {
-              withAnimation {
-                let group = feed.group!
-                var s = group.feeds.sorted(by: { $0.order < $1.order })
-                s.remove(at: feed.order)
-                for (index, item) in s.enumerated() { item.order = index }
-                group.feeds = s
-
-                try? modelContext.save()
-
-                dismiss()
-              }
+              try? modelContext.deleteFeed(feedId: feed.id)
+              try? modelContext.save()
+              dismiss()
             }
             .keyboardShortcut(.delete)
           } message: {
@@ -189,12 +199,9 @@ struct FeedItemDetailsView: View {
           .keyboardShortcut(editing ? .cancelAction : nil)
         Button(editing ? "Save" : "Done") {
           if editing {
-            withAnimation {
-              if newName != "" { feed.name = newName }
-              if newURL != "" { feed.url = URL(string: newURL)! }
-              // TODO: Update interval
-              try? modelContext.save()
-            }
+            if newName != "" { feed.name = newName }
+            if newURL != "" { feed.url = URL(string: newURL)! }
+            try? modelContext.save()
             editing = !editing
           } else {
             dismiss()

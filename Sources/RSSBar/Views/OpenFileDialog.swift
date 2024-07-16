@@ -18,6 +18,7 @@ struct OpenFileDialog: ViewModifier {
     self._isPresented = isPresented
     self.callback = callback
 
+    // TODO: This slows the time to render the view the first time
     let panel = NSOpenPanel()
     panel.canChooseDirectories = false
     panel.canChooseFiles = true
@@ -53,55 +54,8 @@ extension View {
   {
     modifier(
       OpenFileDialog(
-        prompt, allowedContentTypes: allowedContentTypes, isPresented: isPresented, callback: callback
+        prompt, allowedContentTypes: allowedContentTypes,
+        isPresented: isPresented, callback: callback
       ))
   }
 }
-
-// "Are you sure you want to reset all settings and data?",
-//             isPresented: $presentResetDialog
-
-//             let panel = NSOpenPanel()
-// panel.allowsMultipleSelection = false
-// panel.canChooseDirectories = false
-// panel.allowedContentTypes = [UTType.json]
-// panel.prompt = "Import"
-// if panel.runModal() == .OK && panel.url != nil {
-//   do {
-//     try importModelData(
-//       from: panel.url!, modelContext: modelContext)
-//   } catch {
-//     logger.error(
-//       "Failed to import data: \(error, privacy: .public)")
-//   }
-//   updateIcon?()
-// }
-
-// .confirmationDialog(
-//   "Imported data will replace any existing data. Continue?",
-//   isPresented: $presentImportDialog
-// ) {
-//   Button("Continue", role: .destructive) {
-//     let panel = NSOpenPanel()
-//     panel.allowsMultipleSelection = false
-//     panel.canChooseDirectories = false
-//     panel.allowedContentTypes = [UTType.json]
-//     panel.prompt = "Import"
-//     if panel.runModal() == .OK && panel.url != nil {
-//       do {
-//         try importModelData(
-//           from: panel.url!, modelContext: modelContext)
-//       } catch {
-//         logger.error(
-//           "Failed to import data: \(error, privacy: .public)")
-//       }
-//       updateIcon?()
-//     }
-//   }
-//   .keyboardShortcut(.delete)
-// } message: {
-//   Text(
-//     "All existing groups, feeds and history will be removed."
-//   )
-// }
-// .dialogIcon(Image(systemName: "square.and.arrow.down.fill"))

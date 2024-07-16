@@ -11,8 +11,8 @@ struct MenuBarView: View {
   @Environment(\.closeMenuBar) private var closeMenuBar
   @Environment(\.quitApp) private var quitApp
   @Environment(\.openSettings) private var openSettings
-  @Environment(\.fetchFeeds) private var fetchFeeds
   @Environment(\.updateIcon) var updateIcon
+
   @Environment(\.modelContext) var modelContext
 
   @Query(sort: \FeedGroup.order) var groups: [FeedGroup]
@@ -23,20 +23,17 @@ struct MenuBarView: View {
       MenuBarTextItem(
         title: "Fetch now"
       ) {
-        Task { await fetchFeeds?(ignoreSchedule: true) }
+        Task {
+          let fetcher = FeedFetcher(modelContainer: modelContext.container)
+          try await fetcher.fetchFeeds(if: .unconditional)
+        }
       }
       MenuBarTextItem(
         title: "Mark all as read"
       ) {
-        for item in feedItems {
-          item.read = item.read ?? Date()
-        }
-        do {
-          try modelContext.save()
-        } catch {
-          logger.error("Failed to mark all items as read \(error)")
-        }
-        updateIcon?()
+        try? modelContext.markAllAsRead()
+        try? modelContext.save()
+        // updateIcon?()
       }
 
       Divider()

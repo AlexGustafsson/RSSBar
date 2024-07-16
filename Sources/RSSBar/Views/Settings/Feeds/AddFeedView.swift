@@ -57,7 +57,7 @@ private struct FormItemView: View {
 
   @State var i = Int.random(in: 0...50)
 
-  private func updateForm() {
+  @MainActor private func updateForm() {
     self.form.url =
       URLTemplate.render(
         self.formItem.template, with: self.form.kv) ?? ""
@@ -119,12 +119,13 @@ private struct FormComponent: Decodable {
 
         // TODO: Cancel if run again
         Task {
-          do {
+         do {
             self.feed = try await RSSFeed.init(contentsOf: url)
             if self.name == "" {
               self.name = self.feed?.title ?? ""
             }
           } catch {
+            print(error)
             // TODO: Use typed errors from Swift 6?
             // TODO: Show errors
           }
@@ -178,9 +179,8 @@ struct AddFeedView: View {
   @State private var form: FeedForm = FeedForm()
   @State private var feed: RSSFeed? = nil
 
-  @Environment(\.modelContext) var modelContext
   @Environment(\.dismiss) var dismiss
-  @Environment(\.fetchFeeds) var fetchFeeds
+  @Environment(\.modelContext) var modelContext
 
   @State private var forms: FormsDescription
   @State private var selectedFormItem: FormItem
@@ -260,15 +260,19 @@ struct AddFeedView: View {
         }
         .keyboardShortcut(.cancelAction)
         Button("Add") {
-          withAnimation {
-            let feed = Feed(name: form.name, url: form.absoluteUrl!)
-            var s = group.feeds.sorted(by: { $0.order < $1.order })
-            s.append(feed)
-            for (index, item) in s.enumerated() { item.order = index }
-            group.feeds = s
-            try? modelContext.save()
-            dismiss()
-            Task { await fetchFeeds?(ignoreSchedule: false) }
+          try? modelContext.addFeed(
+            groupId: group.id,
+            feed: Feed(name: form.name, url: form.absoluteUrl!))
+          // TODO: seems broken - freezes app
+          try? modelContext.save()
+          dismiss()
+          // Seems to crash if running this:
+          // Perhaps only schedule from any thread, but have a single thread
+          // actually doing the fetching? It's weird, because the fetch all
+          // in the menu bar seems to work alright
+          Task {
+            let fetcher = FeedFetcher(modelContainer: modelContext.container)
+            try await fetcher.fetchFeeds()
           }
         }
         .keyboardShortcut(.defaultAction)

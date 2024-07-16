@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-@Model class FeedGroup: Codable {
+@Model final class FeedGroup: Codable {
   var name: String
   @Relationship(deleteRule: .cascade, inverse: \Feed.group) var feeds: [Feed] =
     []
@@ -20,14 +20,14 @@ import SwiftData
     self.feeds = feeds
   }
 
-  required init(from decoder: Decoder) throws {
+  public required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.name = try container.decode(String.self, forKey: .name)
     self.feeds = try container.decode([Feed].self, forKey: .feeds)
     self.order = try container.decode(Int.self, forKey: .order)
   }
 
-  func encode(to encoder: Encoder) throws {
+  public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(name, forKey: .name)
     try container.encode(feeds, forKey: .feeds)
@@ -35,7 +35,7 @@ import SwiftData
   }
 }
 
-@Model class Feed: Codable {
+@Model final class Feed: Codable {
   var name: String
   var url: URL
 
@@ -69,16 +69,16 @@ import SwiftData
 
   var unreadItemsCount: Int { items.filter({ item in item.read == nil }).count }
 
-  required init(from decoder: Decoder) throws {
+  public required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.name = try container.decode(String.self, forKey: .name)
     self.url = try container.decode(URL.self, forKey: .url)
     self.items = try container.decode([FeedItem].self, forKey: .items)
-    self.lastUpdated = try container.decode(Date.self, forKey: .lastUpdated)
+    self.lastUpdated = try container.decode(Date?.self, forKey: .lastUpdated)
     self.order = try container.decode(Int.self, forKey: .order)
   }
 
-  func encode(to encoder: Encoder) throws {
+  public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(name, forKey: .name)
     try container.encode(url, forKey: .url)
@@ -87,7 +87,7 @@ import SwiftData
     try container.encode(order, forKey: .order)
   }
 }
-@Model class FeedItem: Codable {
+@Model final class FeedItem: Codable {
   @Attribute(.unique) var id: String
   var title: String
   var date: Date?
@@ -119,7 +119,7 @@ import SwiftData
     self.url = url
   }
 
-  required init(from decoder: Decoder) throws {
+  public required init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.id = try container.decode(String.self, forKey: .id)
     self.title = try container.decode(String.self, forKey: .title)
@@ -128,7 +128,7 @@ import SwiftData
     self.url = try container.decode(URL?.self, forKey: .url)
   }
 
-  func encode(to encoder: Encoder) throws {
+  public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
     try container.encode(title, forKey: .title)
@@ -136,5 +136,4 @@ import SwiftData
     try container.encode(read, forKey: .read)
     try container.encode(url, forKey: .url)
   }
-
 }

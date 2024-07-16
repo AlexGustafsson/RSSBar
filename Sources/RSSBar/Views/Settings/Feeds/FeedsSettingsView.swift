@@ -35,9 +35,7 @@ struct FeedsSettingsView: View {
           .alert("Add new group", isPresented: $presentPrompt) {
             TextField("Name", text: $newName, prompt: Text("Group name"))
             Button("OK") {
-              let group = FeedGroup(name: newName)
-              group.order = groups.count
-              modelContext.insert(group)
+              try? modelContext.addGroup(name: newName)
               try? modelContext.save()
             }
             .keyboardShortcut(.defaultAction)

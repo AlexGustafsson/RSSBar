@@ -8,26 +8,16 @@ import os
 private let logger = Logger(
   subsystem: Bundle.main.bundleIdentifier!, category: "UI/App")
 
-class AppState: ObservableObject {
+@MainActor class AppState: ObservableObject {
   static let shared = AppState()
 
   @Published var icon: NSImage?
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-  public var modelContainer: ModelContainer
   private var timer: Timer?
 
-  override init() {
-    do {
-      self.modelContainer = try initializeModelContainer()
-    } catch {
-      logger.error("Failed to initialize model container \(error)")
-      exit(1)
-    }
-
-    super.init()
-  }
+  public let modelContainer: ModelContainer = try! ModelContainer.initDefault()
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
     logger.info("Started RSSBar")
@@ -50,10 +40,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   @MainActor func render() {
     let modelContext = ModelContext(self.modelContainer)
-
-    let descriptor = FetchDescriptor<FeedItem>(
-      predicate: #Predicate { $0.read == nil })
-    let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+    guard let count = try? modelContext.countUnreadFeeds() else {
+      return
+    }
 
     let resource = Bundle.module.image(
       forResource: count == 0 ? "icon.svg" : "icon-with-banner.svg")!
@@ -64,80 +53,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     AppState.shared.icon = resource
   }
 
-  @objc func fireTimer() {
+  @MainActor @objc func fireTimer() {
     Task {
-      await fetchFeeds(ignoreSchedule: false)
-    }
-  }
-
-  func fetchFeeds(ignoreSchedule: Bool) async {
-    let modelContext = ModelContext(self.modelContainer)
-
-    guard
-      let feedIds = (try? modelContext.fetch(FetchDescriptor<Feed>()))?
-        .map({
-          $0.persistentModelID
-        })
-    else { return }
-
-    for chunk in feedIds.chunked(into: 5) {
-      await withTaskGroup(of: Void.self) { taskGroup in
-        for feedId in chunk {
-          taskGroup.addTask(operation: {
-            let modelContext = ModelContext(self.modelContainer)
-
-            let feed = modelContext.model(for: feedId) as! Feed
-
-            let isOutdated =
-              feed.lastUpdated == nil
-              || feed.lastUpdated!.distance(to: Date()) > 1 * 60 * 60
-            if ignoreSchedule || isOutdated {
-              logger.debug(
-                "Updating \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public) (ignoring schedule: \(ignoreSchedule), is outdated: \(isOutdated))"
-              )
-              do {
-                let result = try await RSSFeed(contentsOf: feed.url)
-                for item in result.entries {
-                  let id = UUID.v8(withHash: "\(feed.id):\(item.id)")
-
-                  let oldItem = feed.items.first(where: {
-                    $0.id == id
-                  })
-
-                  let newItem = FeedItem(
-                    id: id,
-                    title: item.title ?? item.summary ?? "Feed item",
-                    date: item.updated,
-                    read: oldItem?.read,
-                    url: item.links.first
-                  )
-                  newItem.feed = feed
-
-                  modelContext.insert(newItem)
-                }
-                feed.lastUpdated = Date()
-                modelContext.insert(feed)
-                do {
-                  try modelContext.save()
-                } catch {
-                  logger.error("Failed to save new items \(error)")
-                }
-                logger.debug(
-                  "Feed updated \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(result.entries.count)"
-                )
-              } catch {
-                logger.debug(
-                  "Failed to update feed \(feed.name, privacy: .public)@\(feed.url.absoluteString, privacy: .public): \(error)"
-                )
-              }
-            }
-          })
-        }
+      let fetcher = FeedFetcher(modelContainer: self.modelContainer)
+      do {
+        try await fetcher.fetchFeeds()
+      } catch {
+        logger.error("Failed to fetch feeds: \(error, privacy: .public)")
       }
-    }
-
-    Task {
-      await self.render()
     }
   }
 }
@@ -155,10 +78,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       MenuBarView().openSettingsAccess()
         .modelContainer(appDelegate.modelContainer)
         .environment(
-          \.fetchFeeds, FetchFeedsAction(action: appDelegate.fetchFeeds)
+          \.updateIcon, UpdateIconAction(action: appDelegate.render)
         )
-        .environment(
-          \.updateIcon, UpdateIconAction(action: appDelegate.render))
     } label: {
       if let icon = appState.icon {
         Image(nsImage: icon)
@@ -171,9 +92,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     Settings {
       SettingsView().modelContainer(appDelegate.modelContainer)
-        .environment(
-          \.fetchFeeds, FetchFeedsAction(action: appDelegate.fetchFeeds)
-        )
         .environment(
           \.updateIcon, UpdateIconAction(action: appDelegate.render)
         )
