@@ -215,7 +215,7 @@ struct AddFeedView: View {
               TextField("Name", text: $form.name, prompt: Text("Name"))
                 .textFieldStyle(.plain).labelsHidden().font(.headline)
                 .foregroundStyle(.secondary)
-              Text(form.url).font(.footnote).foregroundStyle(.secondary)
+              TruncatedText(form.url).font(.footnote).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
           }
