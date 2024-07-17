@@ -8,12 +8,14 @@ import os
 private let logger = Logger(
   subsystem: Bundle.main.bundleIdentifier!, category: "UI/Settings")
 
+
 struct AdvancedSettingsView: View {
   @State private var presentResetDialog = false
   @State private var presentImportConfirmationDialog = false
   @State private var presentImportDialog = false
   @State private var presentExportDialog = false
-  @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
+
+  @AppStorage(UserDefaults.Keys.enableFaviconsFetching.rawValue) private var enableFaviconsFetching =
     true
 
   @Environment(\.updateIcon) var updateIcon

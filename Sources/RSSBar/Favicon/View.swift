@@ -10,7 +10,7 @@ struct Favicon: View {
   public var fallbackSystemName: String?
 
   @State private var favicon: URL?
-  @AppStorage("enableFaviconsFetching") private var enableFaviconsFetching =
+  @AppStorage(UserDefaults.Keys.enableFaviconsFetching.rawValue) private var enableFaviconsFetching =
     true
 
   func fetchURL() {
