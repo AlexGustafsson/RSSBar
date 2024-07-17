@@ -90,11 +90,13 @@ struct AdvancedSettingsView: View {
               do {
                 try modelContext.reset()
                 try DiskCache.shared.removeAll()
+                // TODO: This updates the UI the first time, but not the second.
+                // Doesn't matter if we reload the window
+                UserDefaults.standard.reset()
               } catch {
                 logger.error(
                   "Failed to reset data: \(error, privacy: .public)")
               }
-              // TODO: Reset settings to default
               // updateIcon?()
             }
             .keyboardShortcut(.delete)
