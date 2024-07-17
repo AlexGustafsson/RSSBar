@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-@Model final class FeedGroup: Codable {
+@Model final class FeedGroup: Codable, Identifiable {
   var name: String
   @Relationship(deleteRule: .cascade, inverse: \Feed.group) var feeds: [Feed] =
     []
@@ -35,7 +35,7 @@ import SwiftData
   }
 }
 
-@Model final class Feed: Codable {
+@Model final class Feed: Codable, Identifiable {
   var name: String
   var url: URL
 
@@ -87,7 +87,8 @@ import SwiftData
     try container.encode(order, forKey: .order)
   }
 }
-@Model final class FeedItem: Codable {
+
+@Model final class FeedItem: Codable, Identifiable {
   @Attribute(.unique) var id: String
   var title: String
   var date: Date?
