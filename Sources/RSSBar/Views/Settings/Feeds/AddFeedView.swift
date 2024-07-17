@@ -108,6 +108,17 @@ private struct FormComponent: Decodable {
   private var cancelables = Set<AnyCancellable>()
 
   init() {
+    // Immediately invalidate the feed
+    self.urlPublisher.removeDuplicates()
+      .sink { [self] _ in
+        if self.feed != nil && self.name == self.feed!.title {
+          self.name = ""
+        }
+        self.feed = nil
+      }
+      .store(in: &cancelables)
+
+    // After debounce, try to fetch the feed for validation
     self.urlPublisher
       .removeDuplicates()
       .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
@@ -117,7 +128,7 @@ private struct FormComponent: Decodable {
           return
         }
 
-        // TODO: Cancel if run again
+        // TODO: Cancel if input changed
         Task {
           do {
             self.feed = try await RSSFeed.init(contentsOf: url)
@@ -215,7 +226,8 @@ struct AddFeedView: View {
               TextField("Name", text: $form.name, prompt: Text("Name"))
                 .textFieldStyle(.plain).labelsHidden().font(.headline)
                 .foregroundStyle(.secondary)
-              TruncatedText(form.url).font(.footnote).foregroundStyle(.secondary)
+              TruncatedText(form.url).font(.footnote)
+                .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
           }
