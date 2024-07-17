@@ -22,6 +22,18 @@ struct AdvancedSettingsView: View {
 
   @Environment(\.modelContext) private var modelContext
 
+  var feedGroupCount: Int {
+    (try? modelContext.fetchCount(FetchDescriptor<FeedGroup>())) ?? 0
+  }
+
+  var feedCount: Int {
+    (try? modelContext.fetchCount(FetchDescriptor<Feed>())) ?? 0
+  }
+
+  var feedItemCount: Int {
+    (try? modelContext.fetchCount(FetchDescriptor<FeedItem>())) ?? 0
+  }
+
   var body: some View {
     Form {
       Section("Favicons") {
@@ -108,6 +120,18 @@ struct AdvancedSettingsView: View {
             )
           }
           .dialogIcon(Image(systemName: "arrow.clockwise.circle.fill"))
+      }
+
+      Section("Stats") {
+        LabeledContent("Feed groups:") {
+          Text(String(feedGroupCount))
+        }
+        LabeledContent("Feeds:") {
+          Text(String(feedCount))
+        }
+        LabeledContent("Feed items:") {
+          Text(String(feedItemCount))
+        }
       }
     }
     .formStyle(.grouped)
