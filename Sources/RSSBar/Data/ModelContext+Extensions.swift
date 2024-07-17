@@ -194,45 +194,35 @@ extension ModelContext {
     //   for (index, item) in group.feeds.enumerated() { item.order = index }
     // }
 
-    // TODO: Don't use a transaction here? No other method implicitly saves, why
-    // should this?
-    try self.transaction {
-      // NOTE: For whatever reason, it seems as if the deletion of FeedItem hangs
-      // in certain condtions. For now, just hope the cascade always works
-      try self.delete(model: FeedGroup.self)
-      // NOTE: Should coalesce delete on FeedGroup and Feed, but let's
-      // make sure all potential dangling items are deleted as well
-      // try self.delete(model: Feed.self)
-      // try self.delete(model: FeedItem.self)
+    // NOTE: Should cascade delete on FeedGroup and Feed, but it doesn't always
+    // seem to work. Let's make sure all potential dangling items are deleted as
+    // well. We need to save between each change as SwiftData will cause a crash
+    // if we try to delete a deleted model. This makes it impossible to use a
+    // transaction in a meaningful way
 
-      for group in groups {
-        self.insert(group)
-      }
-
-      // Save is implicit
+    try self.reset()
+    for group in groups {
+      self.insert(group)
     }
+    try self.save()
   }
 
   func reset() throws {
     logger.debug("Resetting data")
 
-    // NOTE: For whatever reason, it seems as if the deletion of FeedItem hangs
-    // in certain condtions. For now, just hope the cascade always works
+    // NOTE: Should cascade delete on FeedGroup and Feed, but it doesn't always
+    // seem to work. Let's make sure all potential dangling items are deleted as
+    // well. We need to save between each change as SwiftData will cause a crash
+    // if we try to delete a deleted model.
+
     try self.delete(model: FeedGroup.self)
-    // TODO: This is the only function with implicit save?
     try self.save()
 
-    // // TODO: Don't use a transaction here? No other method implicitly saves, why
-    // // should this?
-    // try self.transaction {
-    //   try self.delete(model: FeedGroup.self)
-    //   // NOTE: Should cascade delete on FeedGroup and Feed, but let's
-    //   // make sure all potential dangling items are deleted as well
-    //   try self.delete(model: Feed.self)
-    //   try self.delete(model: FeedItem.self)
+    try self.delete(model: Feed.self)
+    try self.save()
 
-    //   // Save is implicit
-    // }
+    try self.delete(model: FeedItem.self)
+    try self.save()
   }
 
   func changeFeedGroup(
