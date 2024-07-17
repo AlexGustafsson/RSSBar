@@ -4,7 +4,7 @@ import HTTPTypesFoundation
 
 enum RSSError: Error {
   case invalidRootElementType
-  case invalidContentType
+  case invalidContentType(String)
   case unknownContentType
   case notFound
   case unexpectedStatusCode(Int)
@@ -35,7 +35,7 @@ public struct RSSFeed: Equatable, Identifiable, Sendable {
       "application/atom+xml":
       self = try parseXML(data, url: url)
     case "application/feed+json": self = try parseJSON(data, url: url)
-    default: throw RSSError.invalidContentType
+    default: throw RSSError.invalidContentType(contentType)
     }
   }
 
@@ -65,7 +65,7 @@ public struct RSSFeed: Equatable, Identifiable, Sendable {
           contentsOf: responseBody,
           options: [.nodeLoadExternalEntitiesNever, .documentTidyHTML])
       else {
-        throw RSSError.invalidContentType
+        throw RSSError.invalidContentType(contentType ?? "unknown")
       }
 
       for link in try document.nodes(
