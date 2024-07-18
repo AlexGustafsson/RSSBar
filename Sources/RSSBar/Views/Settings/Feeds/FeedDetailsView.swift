@@ -80,7 +80,7 @@ struct FeedDetailsView: View {
                 logger.debug(
                   "Marked all items as read: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
                 )
-                // updateIcon?()
+                updateIcon()
               } catch {
                 logger.error(
                   "Failed to mark all feed items as read: \(error, privacy: .public)"
@@ -94,7 +94,7 @@ struct FeedDetailsView: View {
                 logger.debug(
                   "Cleared feed history: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
                 )
-                // updateIcon?()
+                updateIcon()
               } catch {
                 logger.error(
                   "Failed to clear feed history: \(error, privacy: .public)")
@@ -107,7 +107,7 @@ struct FeedDetailsView: View {
                 logger.debug(
                   "Cleared items: \(feed.name, privacy: .public)@\(feed.url, privacy: .public)"
                 )
-                // updateIcon?()
+                updateIcon()
               } catch {
                 logger.error(
                   "Failed clear feed items: \(error, privacy: .public)")
@@ -120,8 +120,8 @@ struct FeedDetailsView: View {
                 let fetcher = FeedFetcher(
                   modelContainer: modelContext.container)
                 try await fetcher.fetchFeed(feedId: feedId, if: .unconditional)
+                updateIcon()
               }
-              // updateIcon?()
             }
           }
         }
@@ -149,7 +149,7 @@ struct FeedDetailsView: View {
                     NSWorkspace.shared.open(item.url!)
                     try? modelContext.markAsRead(feedItemId: item.id)
                     try? modelContext.save()
-                    // updateIcon?()
+                    updateIcon()
                   }
                 } label: {
                   Image(systemName: "rectangle.portrait.and.arrow.right")

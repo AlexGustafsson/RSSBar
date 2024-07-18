@@ -83,7 +83,7 @@ struct AdvancedSettingsView: View {
                   logger.error(
                     "Failed to import data: \(error, privacy: .public)")
                 }
-                // updateIcon?()
+                updateIcon()
               }
             }
           } message: {
@@ -111,7 +111,7 @@ struct AdvancedSettingsView: View {
                 logger.error(
                   "Failed to reset data: \(error, privacy: .public)")
               }
-              // updateIcon?()
+              updateIcon()
             }
             .keyboardShortcut(.delete)
           } message: {

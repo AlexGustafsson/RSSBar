@@ -250,6 +250,7 @@ struct AddFeedView: View {
 
   @Environment(\.dismiss) var dismiss
   @Environment(\.modelContext) var modelContext
+  @Environment(\.updateIcon) var updateIcon
 
   @State private var forms: FormsDescription
   @State private var selectedFormItem: FormItem
@@ -352,6 +353,7 @@ struct AddFeedView: View {
           Task {
             let fetcher = FeedFetcher(modelContainer: modelContext.container)
             try await fetcher.fetchFeeds()
+            updateIcon()
           }
         }
         .keyboardShortcut(.defaultAction)

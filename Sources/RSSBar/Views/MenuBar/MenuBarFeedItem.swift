@@ -60,7 +60,7 @@ struct MenuBarFeedItem: View {
                     NSWorkspace.shared.open(item.url!)
                     try? modelContext.markAsRead(feedItemId: item.id)
                     try? modelContext.save()
-                    // updateIcon?()
+                    updateIcon()
                   }
                 }
                 .opacity(item.read == nil ? 1.0 : 0.6)
@@ -74,7 +74,7 @@ struct MenuBarFeedItem: View {
               try? modelContext.markAllAsRead(feedId: feed.id)
               try? modelContext.save()
               showFeedItems = false
-              // updateIcon?()
+              updateIcon()
             }
           }
         }

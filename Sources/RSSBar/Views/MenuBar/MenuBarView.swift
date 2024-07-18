@@ -33,7 +33,7 @@ struct MenuBarView: View {
       ) {
         try? modelContext.markAllAsRead()
         try? modelContext.save()
-        // updateIcon?()
+        updateIcon()
       }
 
       Divider()
