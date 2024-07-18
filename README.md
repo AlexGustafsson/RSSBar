@@ -2,15 +2,9 @@
   <img src=".github/banner.png" alt="Banner">
 </p>
 <p align="center">
-  <a href="https://github.com/swiftlang/swift/releases/tag/swift-5.10-RELEASE">
-    <img src="https://flat.badgen.net/badge/Swift/5.10/orange" alt="Swift Version 5.10" />
-  </a>
-  <a href="https://github.com/AlexGustafsson/RSSBar/releases">
-    <img src="https://flat.badgen.net/github/release/AlexGustafsson/RSSBar" alt="Latest Release" />
-  </a>
-  <a href="https://github.com/AlexGustafsson/RSSBar/blob/main/Package.swift">
-    <img src="https://flat.badgen.net/badge/platform/macOS%20%2014/gray" alt="Platform macOS 14" />
-  </a>
+  <a href="https://github.com/swiftlang/swift/releases/tag/swift-5.10-RELEASE"><img src="https://flat.badgen.net/badge/Swift/5.10/orange" alt="Swift Version 5.10" /></a>
+  <a href="https://github.com/AlexGustafsson/RSSBar/releases"><img src="https://flat.badgen.net/github/release/AlexGustafsson/RSSBar" alt="Latest Release" /></a>
+  <a href="https://github.com/AlexGustafsson/RSSBar/blob/main/Package.swift"><img src="https://flat.badgen.net/badge/platform/macOS%2014/gray" alt="Platform macOS 14" /></a>
   <br>
   <strong><a href="#quickstart">Quick Start</a> | <a href="#contribute">Contribute</a> </strong>
 </p>
@@ -41,13 +35,13 @@ TBD
 
 ## Other
 
-| Light mode | Dark mode |
-| ---------- | --------- |
-| ![menu bar screenshot light mode](./docs/screenshots/light/menu-bar.png) | ![menu bar screenshot dark mode](./docs/screenshots/dark/menu-bar.png) |
-| ![menu bar feed screenshot light mode](./docs/screenshots/light/menu-bar-feed.png) | ![menu bar feed screenshot dark mode](./docs/screenshots/dark/menu-bar-feed.png) |
-| ![settings feeds light mode](./docs/screenshots/light/settings-feeds.png) | ![settings feeds dark mode](./docs/screenshots/dark/settings-feeds.png) |
+| Light mode                                                                                | Dark mode                                                                               |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| ![menu bar screenshot light mode](./docs/screenshots/light/menu-bar.png)                  | ![menu bar screenshot dark mode](./docs/screenshots/dark/menu-bar.png)                  |
+| ![menu bar feed screenshot light mode](./docs/screenshots/light/menu-bar-feed.png)        | ![menu bar feed screenshot dark mode](./docs/screenshots/dark/menu-bar-feed.png)        |
+| ![settings feeds light mode](./docs/screenshots/light/settings-feeds.png)                 | ![settings feeds dark mode](./docs/screenshots/dark/settings-feeds.png)                 |
 | ![settings feeds details light mode](./docs/screenshots/light/settings-feeds-details.png) | ![settings feeds details dark mode](./docs/screenshots/dark/settings-feeds-details.png) |
-| ![settings advanced light mode](./docs/screenshots/light/settings-advanced.png) | ![settings advanced dark mode](./docs/screenshots/dark/settings-advanced.png) |
+| ![settings advanced light mode](./docs/screenshots/light/settings-advanced.png)           | ![settings advanced dark mode](./docs/screenshots/dark/settings-advanced.png)           |
 
 ## Contribute
 
@@ -84,8 +78,8 @@ make installer
 4. Build the installer with `CODESIGN_IDENTITY` set to the name of your
    identity.
 
-__NOTE: At the moment, the app doesn't start when signed. Instead, it throws an
-error that resources can't be read. It is unclear why that is.__
+**NOTE: At the moment, the app doesn't start when signed. Instead, it throws an
+error that resources can't be read. It is unclear why that is.**
 
 ### SwiftUI
 
