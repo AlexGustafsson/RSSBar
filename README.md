@@ -1,4 +1,80 @@
-## Resources
+<p align="center">
+  <img src=".github/banner.png" alt="Banner">
+</p>
+<p align="center">
+  <a href="https://github.com/swiftlang/swift/releases/tag/swift-5.10-RELEASE">
+    <img src="https://flat.badgen.net/badge/Swift/5.10/orange" alt="Swift Version 5.10" />
+  </a>
+  <a href="https://github.com/AlexGustafsson/RSSBar/releases">
+    <img src="https://flat.badgen.net/github/release/AlexGustafsson/RSSBar" alt="Latest Release" />
+  </a>
+  <a href="https://github.com/AlexGustafsson/RSSBar/blob/main/Package.swift">
+    <img src="https://flat.badgen.net/badge/platform/macOS%20%2014/gray" alt="Platform macOS 14" />
+  </a>
+  <br>
+  <strong><a href="#quickstart">Quick Start</a> | <a href="#contribute">Contribute</a> </strong>
+</p>
+
+# RSSBar
+
+### An application for RSS, Atom and JSON feeds in the macOS menu bar
+
+## Features
+
+- Native UI
+- Fast and efficient
+- Supports RSS, Atom and JSON Feed
+- Supports alternate links (finds feeds from a regular web page)
+- Supports Intel and Apple silicon
+- Supports macOS 14 (Sonoma) and later
+- Import and export of feeds
+
+## Quickstart
+
+TBD
+
+## Screenshots
+
+## Overview
+
+![menu bar screenshot](./docs/screenshots/overview.png)
+
+## Other
+
+| Light mode | Dark mode |
+| ---------- | --------- |
+| ![menu bar screenshot light mode](./docs/screenshots/light/menu-bar.png) | ![menu bar screenshot dark mode](./docs/screenshots/dark/menu-bar.png) |
+| ![menu bar feed screenshot light mode](./docs/screenshots/light/menu-bar-feed.png) | ![menu bar feed screenshot dark mode](./docs/screenshots/dark/menu-bar-feed.png) |
+| ![settings feeds light mode](./docs/screenshots/light/settings-feeds.png) | ![settings feeds dark mode](./docs/screenshots/dark/settings-feeds.png) |
+| ![settings feeds details light mode](./docs/screenshots/light/settings-feeds-details.png) | ![settings feeds details dark mode](./docs/screenshots/dark/settings-feeds-details.png) |
+| ![settings advanced light mode](./docs/screenshots/light/settings-advanced.png) | ![settings advanced dark mode](./docs/screenshots/dark/settings-advanced.png) |
+
+## Contribute
+
+### Building
+
+```shell
+# Build and run the app
+make run
+
+# Run tests
+make test
+
+# Buld the app
+make build
+
+# Lint and format code
+make lint
+make format
+
+# Build the app bundle
+make app
+
+# Buld the installer (requires node and npm)
+make installer
+```
+
+### SwiftUI
 
 1. Extract To Separate Struct: Use when you want something, custom and reusable.
 2. Extract To Local Computed Property: Use when you want something private and internal.
@@ -21,3 +97,22 @@
   code until you find the culprit.
 - This one is well documented, but always create a new `ModelContext` for every
   thread. This includes completion handlers.
+
+## Similar software
+
+In the past I've used both RSSBot and baRSS. Both of which work great. I decided
+to write RSSBar for a few different reasons:
+
+- Native support for Apple silicon. RSSBot, for example, requires Rosetta
+- Support additional feed formats, without any third-party dependencies. RSSBot
+  and baRSS, for example both only support RSS. baRSS uses RSXML.
+- Include an expressive, native UI that feels at home in macOS Sonoma and later
+
+Regarding the last point; the UI is made to look similar to the Wi-Fi menu bar
+application as well as Safari's password settings.
+
+Note that RSSBar is not nor ever will be an "RSS reader". There are some great
+ones out there, though:
+
+- <https://netnewswire.com>
+- <https://www.vienna-rss.com>

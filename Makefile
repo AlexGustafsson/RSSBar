@@ -56,8 +56,8 @@ app: build .build/AppIcon.icns
 	mkdir -p .build/RSSBar.app/Contents/Resources
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
 
-.PHONY: dmg
-dmg:
+.PHONY: installer
+installer:
 # create-dmg exits with 2 if everything worked but it wasn't code signed
 # due to no identity being defined
 	npx create-dmg --overwrite --identity="$(CODESIGN_IDENTITY)" .build/RSSBar.app .build || [[ $$? -eq 2 ]] || exit 1
