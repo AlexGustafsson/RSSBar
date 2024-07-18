@@ -5,6 +5,9 @@ import SwiftData
 import SwiftUI
 import os
 
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier!, category: "UI/AddFeed")
+
 private struct FormsDescription: Decodable {
   let sections: [FormSection]
 }
@@ -102,6 +105,7 @@ private struct FormComponent: Decodable {
   }
   var feed: RSSFeed? = nil
   var isFetching = false
+  var fetchError: String?
 
   var kv: [String: Any] = [:]
 
@@ -128,6 +132,11 @@ private struct FormComponent: Decodable {
       .sink { [self] _ in
         guard let url = self.absoluteUrl else {
           self.feed = nil
+          if url == "" {
+            self.fetchError = nil
+          } else {
+            self.fetchError = "Invalid URL"
+          }
           return
         }
 
@@ -137,6 +146,7 @@ private struct FormComponent: Decodable {
         self.fetchTask = Task {
           do {
             self.isFetching = true
+            self.fetchError = nil
             defer {
               self.isFetching = false
             }
@@ -148,9 +158,45 @@ private struct FormComponent: Decodable {
               }
             }
           } catch {
-            print(error)
+            if let rssError = error as? RSSError {
+              switch rssError {
+              case let RSSError.invalidContentType(contentType):
+                self.fetchError =
+                  "Invalid content for resource of type \(contentType)"
+              case RSSError.unknownContentType:
+                self.fetchError = "Failed to identify content type"
+              case let RSSError.unexpectedStatusCode(statusCode):
+                switch statusCode {
+                case 404:
+                  self.fetchError = "The feed was not found"
+                default:
+                  self.fetchError =
+                    "Failed to fetch resource - got status code \(statusCode)"
+                }
+              default:
+                self.fetchError = "Failed to fetch the feed"
+                logger.error("Failed to fetch feed \(error, privacy: .public)")
+              }
+            } else {
+              let nsError = error as NSError
+              switch nsError.domain {
+              case NSURLErrorDomain:
+                switch nsError.code {
+                case NSURLErrorCannotFindHost:
+                  self.fetchError = "The domain was not found"
+                default:
+                  self.fetchError =
+                    "An unknown error occurred when fetching the feed"
+                  logger.error(
+                    "Failed to fetch feed \(error, privacy: .public)")
+                }
+              default:
+                self.fetchError =
+                  "An unknown error occurred when fetching the feed"
+                logger.error("Failed to fetch feed \(error, privacy: .public)")
+              }
+            }
             // TODO: Use typed errors from Swift 6?
-            // TODO: Show errors
           }
         }
       }
@@ -238,15 +284,17 @@ struct AddFeedView: View {
               TextField("Name", text: $form.name, prompt: Text("Name"))
                 .textFieldStyle(.plain).labelsHidden().font(.headline)
                 .foregroundStyle(.secondary)
-              TruncatedText(form.url).font(.footnote)
-                .foregroundStyle(.secondary)
-                .frame(width: .infinity)
-                .padding(.trailing, 32)
-                .background(alignment: .trailing) {
-                  if form.isFetching {
-                    ProgressView().scaleEffect(0.5)
-                  }
+              HStack {
+                TruncatedText(form.url).font(.footnote)
+                  .foregroundStyle(.secondary)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                if form.isFetching {
+                  ProgressView().scaleEffect(0.5)
+                } else if let fetchError = form.fetchError {
+                  Image(systemName: "xmark.circle").foregroundStyle(.red)
+                    .help(fetchError)
                 }
+              }
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
           }

@@ -2,7 +2,7 @@ import Foundation
 import HTTPTypes
 import HTTPTypesFoundation
 
-enum RSSError: Error {
+public enum RSSError: Error, Equatable {
   case invalidRootElementType
   case invalidContentType(String)
   case unknownContentType
@@ -52,6 +52,10 @@ public struct RSSFeed: Equatable, Identifiable, Sendable {
 
     let (responseBody, response) = try await URLSession.shared.download(
       for: request)
+
+    if response.status != .ok {
+      throw RSSError.unexpectedStatusCode(response.status.code)
+    }
 
     var contentType = response.headerFields[.contentType]
     if let actualContentType = contentType?.cut(at: ";")?.0 {
