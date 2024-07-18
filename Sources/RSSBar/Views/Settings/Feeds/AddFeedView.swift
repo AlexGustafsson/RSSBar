@@ -101,11 +101,13 @@ private struct FormComponent: Decodable {
     didSet { self.urlPublisher.send(url) }
   }
   var feed: RSSFeed? = nil
+  var isFetching = false
 
   var kv: [String: Any] = [:]
 
   private var urlPublisher = PassthroughSubject<String, Never>()
   private var cancelables = Set<AnyCancellable>()
+
   private var fetchTask: Task<(), Never>?
 
   init() {
@@ -134,6 +136,10 @@ private struct FormComponent: Decodable {
         }
         self.fetchTask = Task {
           do {
+            self.isFetching = true
+            defer {
+              self.isFetching = false
+            }
             let feed = try await RSSFeed.init(contentsOf: url)
             if !Task.isCancelled {
               self.feed = feed
@@ -234,6 +240,13 @@ struct AddFeedView: View {
                 .foregroundStyle(.secondary)
               TruncatedText(form.url).font(.footnote)
                 .foregroundStyle(.secondary)
+                .frame(width: .infinity)
+                .padding(.trailing, 32)
+                .background(alignment: .trailing) {
+                  if form.isFetching {
+                    ProgressView().scaleEffect(0.5)
+                  }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
           }
