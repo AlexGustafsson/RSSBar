@@ -1,5 +1,5 @@
 .PHONY: all
-all: app dmg
+all: app installer
 
 .PHONY: build
 # Build RSSBar
