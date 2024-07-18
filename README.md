@@ -74,6 +74,19 @@ make app
 make installer
 ```
 
+### Signing
+
+1. Create a self-signed certificate using the Keychain > Certificate Assistant.
+2. Either use the basic / quick wizard and select the code signing type, or use
+   the advacned wizard and enable (at least) signatures and the code signing
+   extended usage.
+3. Mark the certificate as trusted for code signing.
+4. Build the installer with `CODESIGN_IDENTITY` set to the name of your
+   identity.
+
+__NOTE: At the moment, the app doesn't start when signed. Instead, it throws an
+error that resources can't be read. It is unclear why that is.__
+
 ### SwiftUI
 
 1. Extract To Separate Struct: Use when you want something, custom and reusable.
@@ -97,6 +110,11 @@ make installer
   code until you find the culprit.
 - This one is well documented, but always create a new `ModelContext` for every
   thread. This includes completion handlers.
+
+### Resources
+
+- <https://book.hacktricks.xyz/macos-hardening/macos-security-and-privilege-escalation/macos-security-protections/macos-sandbox>
+- <https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle>
 
 ## Similar software
 

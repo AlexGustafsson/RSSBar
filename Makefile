@@ -55,6 +55,10 @@ app: build .build/AppIcon.icns
 	cp .build/release/RSSBar .build/RSSBar.app/Contents/MacOS
 	mkdir -p .build/RSSBar.app/Contents/Resources
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
+ifdef CODESIGN_IDENTITY
+	plutil -convert xml1 Sources/RSSBar/Resources/Entitlements.plist
+	codesign --force --verbose --entitlements Sources/RSSBar/Resources/Entitlements.plist --sign "$(CODESIGN_IDENTITY)" .build/RSSBar.app
+endif
 
 .PHONY: installer
 installer:

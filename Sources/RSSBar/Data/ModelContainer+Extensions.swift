@@ -7,7 +7,7 @@ extension ModelContainer {
     let bundleID = Bundle.main.bundleIdentifier!
     let applicationSupport = try FileManager.default.url(
       for: .applicationSupportDirectory, in: .userDomainMask,
-      appropriateFor: nil, create: false)
+      appropriateFor: nil, create: true)
 
     let appSupportSubDirectory = applicationSupport.appending(
       path: bundleID, directoryHint: .isDirectory)

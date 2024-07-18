@@ -6,7 +6,7 @@ struct AboutView: View {
     Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? ""
   private let applicationVersion =
     Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-  private let icon = Bundle.module.image(forResource: "icon.png")
+  private let icon = Bundle.module.image(forResource: "icon.png")!
 
   var body: some View {
     VStack(alignment: .center) {
