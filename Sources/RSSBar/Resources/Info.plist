@@ -64,5 +64,12 @@
 				<string>Viewer</string>
 			</dict>
 		</array>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<!--Required
+			to load from http:// sites-->
+			<key>NSAllowsArbitraryLoads</key>
+			<true />
+		</dict>
 	</dict>
 </plist>
