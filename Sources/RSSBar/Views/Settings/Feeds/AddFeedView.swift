@@ -158,7 +158,8 @@ private struct FormComponent: Decodable {
                 self.name = self.feed?.title ?? ""
               }
               if feed.url.scheme == "http" {
-                self.fetchWarning = "Insecure transport used - use HTTPS if possible"
+                self.fetchWarning =
+                  "Insecure transport used - use HTTPS if possible"
               }
             }
           } catch {
@@ -299,7 +300,8 @@ struct AddFeedView: View {
                   Image(systemName: "xmark.circle").foregroundStyle(.red)
                     .help(fetchError)
                 } else if let fetchWarning = form.fetchWarning {
-                   Image(systemName: "exclamationmark.triangle").foregroundStyle(.red)
+                  Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
                     .help(fetchWarning)
                 }
               }
