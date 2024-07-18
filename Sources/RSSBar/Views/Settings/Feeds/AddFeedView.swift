@@ -106,6 +106,7 @@ private struct FormComponent: Decodable {
 
   private var urlPublisher = PassthroughSubject<String, Never>()
   private var cancelables = Set<AnyCancellable>()
+  private var fetchTask: Task<(), Never>?
 
   init() {
     // Immediately invalidate the feed
@@ -128,12 +129,17 @@ private struct FormComponent: Decodable {
           return
         }
 
-        // TODO: Cancel if input changed
-        Task {
+        if let currentTask = self.fetchTask {
+          currentTask.cancel()
+        }
+        self.fetchTask = Task {
           do {
-            self.feed = try await RSSFeed.init(contentsOf: url)
-            if self.name == "" {
-              self.name = self.feed?.title ?? ""
+            let feed = try await RSSFeed.init(contentsOf: url)
+            if !Task.isCancelled {
+              self.feed = feed
+              if self.name == "" {
+                self.name = self.feed?.title ?? ""
+              }
             }
           } catch {
             print(error)
