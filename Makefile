@@ -46,6 +46,8 @@ test:
 	sips -z 256 256 $< --out ".build/AppIcon.iconset/icon_256x256.png"
 	sips -z 512 512 $< --out ".build/AppIcon.iconset/icon_256x256@2x.png"
 	sips -z 512 512 $< --out ".build/AppIcon.iconset/icon_512x512.png"
+	sips -z 1024 1024 $< --out ".build/AppIcon.iconset/icon_512x512@2x.png"
+	sips -z 1024 1024 $< --out ".build/AppIcon.iconset/icon_1024x1024.png"
 # Compile icons
 	iconutil --convert icns --output .build/AppIcon.icns .build/AppIcon.iconset
 
