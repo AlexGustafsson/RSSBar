@@ -43,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     guard let count = try? modelContext.countUnreadFeeds() else {
       return
     }
-    let resource = Bundle.module.image(
+      let resource = Bundle.main.image(
       forResource: count == 0 ? "icon.svg" : "icon-with-banner.svg")!
     let ratio = resource.size.height / resource.size.width
     resource.size.height = 18

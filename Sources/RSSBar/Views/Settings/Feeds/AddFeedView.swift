@@ -263,7 +263,7 @@ struct AddFeedView: View {
   init(group: FeedGroup) {
     self.group = group
 
-    let formsURL = Bundle.module.url(
+    let formsURL = Bundle.main.url(
       forResource: "feed-forms", withExtension: "json")!
 
     let decoder = JSONDecoder()

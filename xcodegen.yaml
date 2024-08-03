@@ -1,0 +1,30 @@
+name: RSSBar
+options:
+  bundleIdPrefix: se.axgn
+targets:
+  RSSBar:
+    type: application
+    platform: macOS
+    sources: [Sources/RSSBar]
+    settings:
+      INFOPLIST_FILE: Sources/RSSBar/Resources/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: se.axgn.RSSBar
+    dependencies:
+      - package: RSSKit
+      - package: HTTPTypes
+      - package: SettingsAccess
+packages:
+  RSSKit:
+    path: .
+  HTTPTypes:
+    url: https://github.com/apple/swift-http-types.git
+    from: 1.1.0
+  HTTPTypesFoundation:
+    url: https://github.com/apple/swift-http-types.git
+    from: 1.1.0
+  SettingsAccess:
+    url: https://github.com/orchetect/SettingsAccess
+    from: 1.4.0
+  CustomDump:
+    url: https://github.com/pointfreeco/swift-custom-dump
+    from: 1.0.0

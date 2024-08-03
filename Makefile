@@ -55,11 +55,16 @@ test:
 app: build .build/AppIcon.icns
 	mkdir -p .build/RSSBar.app/Contents/MacOS
 	cp .build/release/RSSBar .build/RSSBar.app/Contents/MacOS
+	cp Sources/RSSBar/Resources/Info.plist .build/RSSBar.app/Contents
 	mkdir -p .build/RSSBar.app/Contents/Resources
+	cp .build/release/RSSBar_RSSBar.bundle/* .build/RSSBar.app/Contents/Resources
+	mkdir -p .build/RSSBar.app/Contents/Resources/RSSBar_RSSKit.bundle/Contents/Resources
+	cp .build/release/RSSBar_RSSKit.bundle/* .build/RSSBar.app/Contents/Resources/RSSBar_RSSKit.bundle/Contents/Resources
+	cp SupportingFiles/RSSKit.bundle.info.plist .build/RSSBar.app/Contents/Resources/RSSBar_RSSKit.bundle/Contents/Info.plist
 	cp .build/AppIcon.icns .build/RSSBar.app/Contents/Resources/AppIcon.icns
 ifdef CODESIGN_IDENTITY
 	plutil -convert xml1 Sources/RSSBar/Resources/Entitlements.plist
-	codesign --force --verbose --entitlements Sources/RSSBar/Resources/Entitlements.plist --sign "$(CODESIGN_IDENTITY)" .build/RSSBar.app
+	codesign --force --verbose=4 --entitlements Sources/RSSBar/Resources/Entitlements.plist --sign "$(CODESIGN_IDENTITY)" .build/RSSBar.app
 endif
 
 .PHONY: installer

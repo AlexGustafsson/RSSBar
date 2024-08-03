@@ -78,9 +78,6 @@ make installer
 4. Build the installer with `CODESIGN_IDENTITY` set to the name of your
    identity.
 
-**NOTE: At the moment, the app doesn't start when signed. Instead, it throws an
-error that resources can't be read. It is unclear why that is.**
-
 ### SwiftUI
 
 1. Extract To Separate Struct: Use when you want something, custom and reusable.
