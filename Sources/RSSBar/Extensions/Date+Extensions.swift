@@ -24,7 +24,7 @@ extension Date {
 
     let hours = floor(minutes / 60)
     if hours < 60 {
-      return "\(prefix)\(Int(hours)) hours\(hours > 1 ? "s" : "")\(postfix)"
+      return "\(prefix)\(Int(hours)) hour\(hours > 1 ? "s" : "")\(postfix)"
     }
 
     let days = floor(hours / 24)
