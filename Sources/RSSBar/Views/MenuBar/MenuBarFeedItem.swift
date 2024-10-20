@@ -68,6 +68,7 @@ struct MenuBarFeedItem: View {
               }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
 
             Divider()
             MenuBarTextItem(title: "Mark all as read") {
