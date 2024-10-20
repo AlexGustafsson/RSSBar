@@ -22,6 +22,7 @@ extension UUID {
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 8))
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 13))
     hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 18))
+    hex.insert("-", at: hex.index(hex.startIndex, offsetBy: 23))
 
     return hex
   }
