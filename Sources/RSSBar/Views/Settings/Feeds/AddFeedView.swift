@@ -144,6 +144,18 @@ private struct FormComponent: Decodable {
         if let currentTask = self.fetchTask {
           currentTask.cancel()
         }
+        // TODO: I can't figure out how to fix this. I've tried async map for
+        // combine, but that's mostly deprecated and not working with safe Swift
+        // 6.0. I've tried running it on the main actor. I've tried extracting
+        // it to an actor class, but that should not be used in Swift UI. I've
+        // tried using async streams, but that can't be declared in init as self
+        // is not defined...
+        // Error:
+        // passing closure as a 'sending' parameter risks causing data races
+        // between code in the current task and concurrent execution of the
+        // closure
+        // `- note: closure captures 'self' which is accessible to code in the
+        // current task
         self.fetchTask = Task {
           do {
             self.isFetching = true
