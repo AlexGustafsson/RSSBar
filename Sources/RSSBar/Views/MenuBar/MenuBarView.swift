@@ -60,7 +60,7 @@ struct MenuBarView: View {
 
           DispatchQueue.main.async {
             NSApp.activate(ignoringOtherApps: true)
-            NSApp.windows.first?.makeKeyAndOrderFront(nil)
+            NSApp.windows.first?.orderFront(nil)
           }
         }
 
@@ -71,7 +71,7 @@ struct MenuBarView: View {
 
           DispatchQueue.main.async {
             NSApp.activate(ignoringOtherApps: true)
-            NSApp.windows.first?.makeKeyAndOrderFront(nil)
+            NSApp.windows.first?.orderFront(nil)
           }
         }
 
