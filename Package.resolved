@@ -1,15 +1,6 @@
 {
-  "originHash" : "7e366dc28b6e677659c5b91c3dc8af63102d3d76ee6840474584086b9166d0ca",
+  "originHash" : "50fee27fc8b08d9fedb2a1af06f0d356d67249d45299f0d7c545f1937b2a3367",
   "pins" : [
-    {
-      "identity" : "settingsaccess",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/orchetect/SettingsAccess",
-      "state" : {
-        "revision" : "08e80c35501f273afa2f5d6f737429bbe395ff81",
-        "version" : "2.1.0"
-      }
-    },
     {
       "identity" : "swift-custom-dump",
       "kind" : "remoteSourceControl",

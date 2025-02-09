@@ -1,6 +1,5 @@
 import AppKit
 import RSSKit
-import SettingsAccess
 import SwiftData
 import SwiftUI
 import os
@@ -74,7 +73,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   var body: some Scene {
     MenuBarExtra {
-      MenuBarView().openSettingsAccess()
+      MenuBarView()
         .modelContainer(appDelegate.modelContainer)
         .environment(
           \.updateIcon, UpdateIconAction(action: appDelegate.render)

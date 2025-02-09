@@ -66,7 +66,7 @@ struct MenuBarView: View {
 
         // Settings
         MenuBarTextItem(title: "Settings...") {
-          try? openSettings()
+          openSettings()
           closeMenuBar()
 
           DispatchQueue.main.async {

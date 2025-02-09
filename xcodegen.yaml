@@ -12,7 +12,6 @@ targets:
     dependencies:
       - package: RSSKit
       - package: HTTPTypes
-      - package: SettingsAccess
 packages:
   RSSKit:
     path: .
@@ -22,9 +21,6 @@ packages:
   HTTPTypesFoundation:
     url: https://github.com/apple/swift-http-types.git
     from: 1.3.1
-  SettingsAccess:
-    url: https://github.com/orchetect/SettingsAccess
-    from: 2.1.0
   CustomDump:
     url: https://github.com/pointfreeco/swift-custom-dump
     from: 1.3.3

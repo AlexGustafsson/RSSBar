@@ -14,7 +14,6 @@ let package = Package(
       url: "https://github.com/apple/swift-http-types.git", from: "1.3.1"),
     .package(
       url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
-    .package(url: "https://github.com/orchetect/SettingsAccess", from: "2.1.0"),
   ],
   targets: [
     .executableTarget(
@@ -22,7 +21,6 @@ let package = Package(
       dependencies: [
         "RSSKit", .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
-        .product(name: "SettingsAccess", package: "SettingsAccess"),
       ],
       resources: [
         .copy("Resources/icon.png"), .copy("Resources/icon.svg"),
