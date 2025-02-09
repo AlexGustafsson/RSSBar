@@ -76,7 +76,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       MenuBarView()
         .modelContainer(appDelegate.modelContainer)
         .environment(
-          \.updateIcon, UpdateIconAction(action: appDelegate.render)
+          \.updateIcon,
+          UpdateIconAction(action: {
+            Task {
+              await MainActor.run {
+                appDelegate.render()
+              }
+            }
+          })
         )
     } label: {
       if let icon = appState.icon {
@@ -91,7 +98,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     Settings {
       SettingsView().modelContainer(appDelegate.modelContainer)
         .environment(
-          \.updateIcon, UpdateIconAction(action: appDelegate.render)
+          \.updateIcon,
+          UpdateIconAction(action: {
+            Task {
+              await MainActor.run {
+                appDelegate.render()
+              }
+            }
+          })
         )
         .onOpenURL { url in print(url) }
     }
