@@ -2,9 +2,9 @@
   <img src=".github/banner.png" alt="Banner">
 </p>
 <p align="center">
-  <a href="https://github.com/swiftlang/swift/releases/tag/swift-5.10-RELEASE"><img src="https://flat.badgen.net/badge/Swift/5.10/orange" alt="Swift Version 5.10" /></a>
+  <a href="https://github.com/swiftlang/swift/releases/tag/swift-6.0-RELEASE"><img src="https://flat.badgen.net/badge/Swift/6.0/orange" alt="Swift Version 6.0" /></a>
   <a href="https://github.com/AlexGustafsson/RSSBar/releases"><img src="https://flat.badgen.net/github/release/AlexGustafsson/RSSBar" alt="Latest Release" /></a>
-  <a href="https://github.com/AlexGustafsson/RSSBar/blob/main/Package.swift"><img src="https://flat.badgen.net/badge/platform/macOS%2014/gray" alt="Platform macOS 14" /></a>
+  <a href="https://github.com/AlexGustafsson/RSSBar/blob/main/Package.swift"><img src="https://flat.badgen.net/badge/platform/macOS%2015/gray" alt="Platform macOS 15" /></a>
   <br>
   <strong><a href="#quickstart">Quick Start</a> | <a href="#contribute">Contribute</a> </strong>
 </p>
@@ -20,7 +20,7 @@
 - Supports RSS, Atom and JSON Feed
 - Supports alternate links (finds feeds from a regular web page)
 - Supports Intel and Apple silicon
-- Supports macOS 14 (Sonoma) and later
+- Supports macOS 15 (Sequoia) and later
 - Import and export of feeds
 
 ## Quickstart
