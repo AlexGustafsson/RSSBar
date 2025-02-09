@@ -77,7 +77,7 @@ final class RSSTests: XCTestCase {
       data: Data(input.utf8),
       contentType: "application/atom+xml"
     )
-    XCTAssertNoDifference(expected, actual)
+    expectNoDifference(expected, actual)
 
   }
 
@@ -224,7 +224,7 @@ final class RSSTests: XCTestCase {
       data: Data(input.utf8),
       contentType: "application/rss+xml"
     )
-    XCTAssertNoDifference(expected, actual)
+    expectNoDifference(expected, actual)
   }
 
   func testParseRSS2() throws {
@@ -302,7 +302,7 @@ final class RSSTests: XCTestCase {
       data: Data(input.utf8),
       contentType: "application/rss+xml"
     )
-    XCTAssertNoDifference(expected, actual)
+    expectNoDifference(expected, actual)
   }
 
   func testParseJSONFeed() throws {
@@ -348,6 +348,6 @@ final class RSSTests: XCTestCase {
       data: Data(input.utf8),
       contentType: "application/feed+json"
     )
-    XCTAssertNoDifference(expected, actual)
+    expectNoDifference(expected, actual)
   }
 }

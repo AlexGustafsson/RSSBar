@@ -1,20 +1,20 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
-  name: "RSSBar", platforms: [.macOS(.v14)],
+  name: "RSSBar", platforms: [.macOS(.v15)],
   products: [
     .executable(name: "RSSBar", targets: ["RSSBar"]),
     .library(name: "RSSKit", targets: ["RSSKit"]),
   ],
   dependencies: [
     .package(
-      url: "https://github.com/apple/swift-http-types.git", from: "1.1.0"),
+      url: "https://github.com/apple/swift-http-types.git", from: "1.3.1"),
     .package(
-      url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
-    .package(url: "https://github.com/orchetect/SettingsAccess", from: "1.4.0"),
+      url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
+    .package(url: "https://github.com/orchetect/SettingsAccess", from: "2.1.0"),
   ],
   targets: [
     .executableTarget(
