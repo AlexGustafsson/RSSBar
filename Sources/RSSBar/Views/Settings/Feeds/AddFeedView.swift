@@ -222,6 +222,10 @@ private struct FormComponent: Decodable {
       )
   }
 
+  deinit {
+    self.fetchTask?.cancel()
+  }
+
   func clear() {
     self.name = ""
     self.url = ""
