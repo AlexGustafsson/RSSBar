@@ -7,6 +7,8 @@ extension UserDefaults {
   }
 
   func reset() {
-    Keys.allCases.forEach { removeObject(forKey: $0.rawValue) }
+    for key in Keys.allCases {
+      removeObject(forKey: key.rawValue)
+    }
   }
 }

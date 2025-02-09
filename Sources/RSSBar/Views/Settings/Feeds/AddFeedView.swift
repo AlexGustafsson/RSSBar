@@ -165,12 +165,12 @@ private struct FormComponent: Decodable {
           } catch {
             if let rssError = error as? RSSError {
               switch rssError {
-              case let RSSError.invalidContentType(contentType):
+              case RSSError.invalidContentType(let contentType):
                 self.fetchError =
                   "Invalid content for resource of type \(contentType)"
               case RSSError.unknownContentType:
                 self.fetchError = "Failed to identify content type"
-              case let RSSError.unexpectedStatusCode(statusCode):
+              case RSSError.unexpectedStatusCode(let statusCode):
                 switch statusCode {
                 case 404:
                   self.fetchError = "The feed was not found"
