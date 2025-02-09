@@ -40,8 +40,6 @@ struct MenuBarFeedItem: View {
           if feed.items.count == 0 {
             Text("No items").frame(maxWidth: .infinity, alignment: .center)
               .padding(10).font(.callout).foregroundStyle(.secondary)
-              .frame(
-                width: .infinity)
           } else {
             List {
               ForEach(

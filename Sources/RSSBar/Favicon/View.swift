@@ -38,7 +38,7 @@ struct Favicon: View {
       image.resizable()
     } placeholder: {
       ZStack {
-        Rectangle().fill(.gray).frame(width: .infinity, height: .infinity)
+        Rectangle().fill(.gray)
         if let fallbackCharacter, fallbackCharacter != "" {
           Text(
             fallbackCharacter.first?
@@ -56,8 +56,6 @@ struct Favicon: View {
     }
     .mask(
       RoundedRectangle(cornerRadius: 6)
-        .frame(
-          width: .infinity, height: .infinity)
     )
     .onChange(of: url) { _, url in
       fetchURL()
@@ -69,4 +67,13 @@ struct Favicon: View {
       // TODO: Cancel download task (decrement number of interested parties as to not stop other favicon)?
     }
   }
+}
+
+#Preview {
+    VStack {
+        Favicon(fallbackCharacter: "C").frame(width: 24, height: 24)
+        Favicon(fallbackCharacter: "F").frame(width: 24, height: 24)
+        Favicon(fallbackSystemName: "rectangle.portrait.and.arrow.right").frame(width: 24, height: 24)
+        Favicon(url: URL(string: "https://example.com")).frame(width: 24, height: 24)
+    }.padding(20)
 }

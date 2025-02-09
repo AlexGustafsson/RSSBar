@@ -85,8 +85,6 @@ struct FeedGroupView: View {
               maxWidth: .infinity, alignment: .center
             )
             .padding(10).font(.callout).foregroundStyle(.secondary)
-            .frame(
-              width: .infinity)
         }
       }
 
