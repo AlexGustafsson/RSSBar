@@ -70,10 +70,13 @@ struct Favicon: View {
 }
 
 #Preview {
-    VStack {
-        Favicon(fallbackCharacter: "C").frame(width: 24, height: 24)
-        Favicon(fallbackCharacter: "F").frame(width: 24, height: 24)
-        Favicon(fallbackSystemName: "rectangle.portrait.and.arrow.right").frame(width: 24, height: 24)
-        Favicon(url: URL(string: "https://example.com")).frame(width: 24, height: 24)
-    }.padding(20)
+  VStack {
+    Favicon(fallbackCharacter: "C").frame(width: 24, height: 24)
+    Favicon(fallbackCharacter: "F").frame(width: 24, height: 24)
+    Favicon(fallbackSystemName: "rectangle.portrait.and.arrow.right")
+      .frame(width: 24, height: 24)
+    Favicon(url: URL(string: "https://example.com"))
+      .frame(width: 24, height: 24)
+  }
+  .padding(20)
 }

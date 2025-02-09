@@ -38,5 +38,5 @@ struct AboutView: View {
 }
 
 #Preview {
-    AboutView()
+  AboutView()
 }
