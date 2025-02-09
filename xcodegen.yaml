@@ -1,6 +1,8 @@
 name: RSSBar
 options:
   bundleIdPrefix: se.axgn
+settings:
+  SWIFT_VERSION: 6
 targets:
   RSSBar:
     type: application

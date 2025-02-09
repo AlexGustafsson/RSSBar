@@ -27,9 +27,6 @@ let package = Package(
         .copy("Resources/icon-with-banner.svg"),
         .copy("Resources/feed-forms.json"),
       ],
-      swiftSettings: [
-        .enableExperimentalFeature("StrictConcurrency=complete")
-      ],
       linkerSettings: [
         .unsafeFlags([
           "-Xlinker", "-sectcreate",
@@ -49,9 +46,10 @@ let package = Package(
       dependencies: [
         .product(name: "HTTPTypes", package: "swift-http-types"),
         .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
-      ], resources: [.copy("Resources/atom.xsd"), .copy("Resources/json-feed.json"), .copy("Resources/rss2.xsd")],
-      swiftSettings: [
-        .enableExperimentalFeature("StrictConcurrency=complete")
+      ],
+      resources: [
+        .copy("Resources/atom.xsd"), .copy("Resources/json-feed.json"),
+        .copy("Resources/rss2.xsd"),
       ]
     ),
     .testTarget(
