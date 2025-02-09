@@ -17,6 +17,7 @@ func parseJSON(_ data: Data, url: URL) throws -> RSSFeed {
   }
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private struct JSONFeed: Decodable {
   var version: String
   var title: String
@@ -46,6 +47,7 @@ private struct JSONFeedHub: Decodable {
   var url: URL
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private struct JSONFeedItem: Decodable {
   var id: String
   var url: URL?
@@ -65,6 +67,7 @@ private struct JSONFeedItem: Decodable {
   var attachments: [JSONFeedAttachment]?
 }
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 private struct JSONFeedAttachment: Decodable {
   var url: URL
   var mime_type: String
