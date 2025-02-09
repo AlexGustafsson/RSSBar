@@ -10,7 +10,7 @@ struct AboutView: View {
 
   var body: some View {
     VStack(alignment: .center) {
-      Image(nsImage: icon ?? NSImage()).resizable().scaledToFit()
+      Image(nsImage: icon).resizable().scaledToFit()
         .frame(
           width: 128.0, height: 128.0)
       Text(applicationName).font(.headline)
@@ -35,4 +35,8 @@ struct AboutView: View {
     }
     .padding()
   }
+}
+
+#Preview {
+    AboutView()
 }
