@@ -352,13 +352,8 @@ struct AddFeedView: View {
           try? modelContext.addFeed(
             groupId: group.id,
             feed: Feed(name: form.name, url: form.absoluteUrl!))
-          // TODO: seems broken - freezes app
           try? modelContext.save()
           dismiss()
-          // Seems to crash if running this:
-          // Perhaps only schedule from any thread, but have a single thread
-          // actually doing the fetching? It's weird, because the fetch all
-          // in the menu bar seems to work alright
           Task {
             let fetcher = FeedFetcher(modelContainer: modelContext.container)
             try await fetcher.fetchFeeds()

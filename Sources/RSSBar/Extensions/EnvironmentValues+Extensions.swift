@@ -43,10 +43,7 @@ extension EnvironmentValues {
   public var quitApp: QuitAppAction { return QuitAppAction() }
 
   // TODO: Use @Entry of Swift 6?
-  var updateIcon: UpdateIconAction {
-    get { self[UpdateIconActionKey.self] }
-    set { self[UpdateIconActionKey.self] = newValue }
-  }
+  @Entry var updateIcon: UpdateIconAction = UpdateIconAction(action: {})
 }
 
 struct UpdateIconAction: Sendable {
@@ -55,10 +52,4 @@ struct UpdateIconAction: Sendable {
   func callAsFunction() {
     action()
   }
-}
-
-private struct UpdateIconActionKey: EnvironmentKey {
-  static let defaultValue: UpdateIconAction = UpdateIconAction(action: {
-    assertionFailure("Update icon action not set")
-  })
 }
