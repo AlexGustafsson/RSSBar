@@ -2,7 +2,8 @@ import CoreTransferable
 import SwiftData
 import UniformTypeIdentifiers
 
-extension PersistentIdentifier: Transferable {
+
+extension PersistentIdentifier: @retroactive Transferable {
   public static var transferRepresentation: some TransferRepresentation {
     CodableRepresentation(contentType: .persistentIdentifier)
   }
