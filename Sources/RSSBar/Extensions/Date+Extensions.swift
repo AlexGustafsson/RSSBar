@@ -23,7 +23,7 @@ extension Date {
     }
 
     let hours = floor(minutes / 60)
-    if hours < 60 {
+    if hours < 24 {
       return "\(prefix)\(Int(hours)) hour\(hours > 1 ? "s" : "")\(postfix)"
     }
 
